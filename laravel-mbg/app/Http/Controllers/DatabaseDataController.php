@@ -26,8 +26,18 @@ class DatabaseDataController extends Controller
 
         $users = User::where('auth_login', json_decode($auth_login))->first();
         if ($auth_login == 'ABC') {
-            $users = User::where('nrp', 'MBLE-0
-            422003')->first();
+            $users = User::where('nrp', 'MBLE-0422003')->first();
+        }
+
+        $Q_user_feture = DatabaseData::where('code_table_data', 'KARYAWAN-ACCESS-FEATURE')
+            ->where('code_data', 'like', ResponseFormatter::toUUID($users->nrp) . '%')
+            ->where('code_field_data', 'FEATURE')
+            ->get();
+        $arr_data_feature = [];
+        foreach ($Q_user_feture as $data_user_feture) {
+            if (!in_array($data_user_feture->value_data, $arr_data_feature)) {
+                $arr_data_feature[] =  $data_user_feture->value_data;
+            }
         }
 
 
@@ -42,9 +52,7 @@ class DatabaseDataController extends Controller
                     "AKTIVE",
                     "PHK-BULAN-INI"
                 ],
-                "FEATURE" => [
-                    "ABSENSI"
-                ],
+                "FEATURE" => $arr_data_feature,
                 "PERUSAHAAN" => [
                     "PT--MBLE",
                     "PT--KPN",
@@ -2141,11 +2149,11 @@ class DatabaseDataController extends Controller
                 // return $gabungan_fields;
                 $isJoin = isset($data_table_new[$key_table]['join_data']) ? true : false;
                 foreach ($table_data as $code_data => $data_value) { // looping data
-                    
+
                     foreach ($gabungan_fields as $field_fields) { // looping field gabungan
                         $val_gabungan = '';
                         foreach ($field_fields as $field_value) {
-                            $val_gabungan = $val_gabungan.$data_value[$field_value['field_show_code']]['text_data'] . $field_value['split_by'];
+                            $val_gabungan = $val_gabungan . $data_value[$field_value['field_show_code']]['text_data'] . $field_value['split_by'];
                         }
                         $arr_data = [
                             'value_data' => rtrim($val_gabungan, $field_value['split_by']),
@@ -2252,5 +2260,84 @@ class DatabaseDataController extends Controller
 
 
         return ResponseFormatter::ResponseJson($data, 'Data table deleted successfully', 200);
+    }
+
+    public function getTableData($code_table)
+    {
+        //1.0 GET table properties
+        $Q_table = DatabaseTable::where('code_table', $code_table)->get();
+        $data_return = [];
+        $data_table = [];
+        $data_table_child = [];
+        foreach ($Q_table as $table) {
+            // $data_table['table'] = $table;
+            $data_table['all_table'][$table->code_table] = $table;
+            $data_table['the_table'] = $table;
+            $data_return['table'] = $table;
+        }
+
+
+
+
+        // 1.1 GET Fields
+        $Q_field = DatabaseField::where('code_table_field', $code_table)->get();
+        foreach ($Q_field as $field) {
+            // $data_table['fields'][$field->code_field] = $field;
+            $data_table['all_fields'][$field->full_code_field] = $field;
+            $data_return['fields'][$field->code_table_field] = $field;
+        }
+
+
+        // 2.0 GET data
+        $Q_data_table = DatabaseData::where('code_table_data', $code_table)->whereNull('date_end')->get([
+            'code_table_data',
+            'code_field_data',
+            'value_data',
+            'code_data',
+            'uuid_data'
+        ]);
+
+        $data_datatables = [];
+        foreach ($Q_data_table  as $data_datatable) {
+            $data_datatables[$data_datatable->code_data][$data_datatable->code_field_data] =   $data_datatable;
+            $data_table['the_data'][$data_datatable->uuid_data][$data_datatable->code_field_data] =  $data_datatable;
+        }
+        $data_return['data_tables'] = $data_datatables;
+
+
+        return ResponseFormatter::ResponseJson($data_return, 'Success Get ' . $code_table, 200);
+
+        $Q_table = DatabaseTable::where('parent_table', $code_table)->get();
+        foreach ($Q_table as $table) {
+            $Q_field = DatabaseField::where('code_table_field', $table->code_table)->get();
+            foreach ($Q_field as $field) {
+                // $data_table['child']['table'][$table->code_table]['fields'][$field->code_field] = $field;                
+                $data_table['all_fields'][$field->full_code_field] = $field;
+            }
+            $data_table['child']['table'][$table->code_table]['table'] = $table;
+            $data_table['all_table'][$table->code_table] = $table;
+        }
+
+        foreach ($data_table['all_fields']  as $arr_field) {
+            $data_table['arr_fields'][] =  $arr_field;
+            if ($arr_field->code_table_field ==  $data_table['the_table']['code_table']) {
+                $data_table['the_fields'][$arr_field->code_field] = $arr_field;
+            }
+        }
+
+        $data_table['the_table']['fields'] = $data_table['the_fields'];
+
+
+
+        // DATA
+        $Q_data_table = DatabaseData::where('code_table_data', $code_table)->whereNull('date_end')->get();
+        // $data_table['the_data'] = $Q_data_table;
+        foreach ($Q_data_table  as $data_datatable) {
+            $data_table['the_data'][$data_datatable->uuid_data][$data_datatable->code_field_data] =  $data_datatable;
+        }
+
+        $data_table['the_template'] = null;
+        dd($data_table);
+        return ResponseFormatter::ResponseJson($data_table, 'Success Get ' . $code_table, 200);
     }
 }

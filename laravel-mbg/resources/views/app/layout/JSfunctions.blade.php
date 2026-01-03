@@ -2872,6 +2872,10 @@
         });
     }
 
+    function removePdf(filename) {
+        return filename.replace(/\.pdf$/i, '');
+    }
+
 
 
     // ================================= UI
@@ -3022,7 +3026,6 @@
 </script>
 {{-- LOCAL STORAGE --}}
 <script>
-    
     function getLetter(num) {
         var letter = String.fromCharCode(num + 64);
         return letter;
@@ -3037,7 +3040,7 @@
 <script>
     // GLOBAL SCRIPT
     function getDataDatabase(isRefresh, arrKey) {
-        if (!db){
+        if (!db) {
             console.log('db on getDataDatabase : not exist, create new db');
             db = {};
         };

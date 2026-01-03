@@ -26,7 +26,7 @@
 
             </div>
         </div>
-        <div class="col-md-4 col-sm-12">
+        <div class="col-md-4 col-sm-12" id="section-preview-slip">
             <div class="card-box">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Preview Slip</h5>
@@ -166,6 +166,7 @@
             console.log("dataRow", dataRow);
             code_file = dataRow;
             showdoc(dataRow['original_file']);
+            goToPreview();
 
             // checkSlip(dataRow['original_file']);
 
@@ -198,30 +199,42 @@
          * TAMPILKAN PDF KE CARD
          * ========================= */
         async function showdoc(filename) {
-
             filename = filename.replace(/\.pdf$/i, '');
             const pdfUrl = `${APP_URL}/slip/${filename}`;
 
             const container = document.getElementById('slip-preview');
-            container.innerHTML = '<span class="text-muted">Loading PDF...</span>';
+
+            if (!container) {
+                console.error('slip-preview NOT FOUND');
+                return;
+            }
+
+            // 🔒 PASTIKAN wrapper ADA
+            let wrapper = document.getElementById('pdf-zoom-wrapper');
+            if (!wrapper) {
+                container.innerHTML = `
+            <div id="pdf-zoom-wrapper"
+                style="transform-origin:0 0; width:fit-content;">
+                <span class="text-muted">Loading PDF...</span>
+            </div>
+        `;
+                wrapper = document.getElementById('pdf-zoom-wrapper');
+            } else {
+                wrapper.innerHTML = '<span class="text-muted">Loading PDF...</span>';
+            }
 
             const exists = await checkSlip(filename);
             if (!exists) {
-                container.innerHTML =
+                wrapper.innerHTML =
                     '<span class="text-danger">❌ File PDF tidak ditemukan</span>';
                 return;
             }
 
             try {
-                const loadingTask = pdfjsLib.getDocument({
-                    url: pdfUrl,
-                    disableStream: false,
-                    disableAutoFetch: false
-                });
-
+                const loadingTask = pdfjsLib.getDocument(pdfUrl);
                 const pdf = await loadingTask.promise;
-                const page = await pdf.getPage(1);
-                currentPdfPage = page;
+
+                currentPdfPage = await pdf.getPage(1);
 
                 renderPageFit();
 
@@ -229,10 +242,22 @@
 
             } catch (err) {
                 console.error('PDF ERROR:', err);
-                container.innerHTML =
+                wrapper.innerHTML =
                     '<span class="text-danger">❌ Gagal membuka PDF</span>';
             }
         }
+
+        function goToPreview() {
+            const section = document.getElementById('section-preview-slip');
+            if (!section) return;
+
+            section.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+
+
 
         /* =========================
          * RENDER PDF SESUAI LEBAR CARD
@@ -241,24 +266,51 @@
             if (!currentPdfPage) return;
 
             const container = document.getElementById('slip-preview');
+            if (!container) return;
+
+            // reset container
             container.innerHTML = '';
+
+            // matikan flex dari inline HTML (WAJIB)
+            container.style.display = 'block';
+            container.style.alignItems = 'unset';
+            container.style.justifyContent = 'unset';
+
+            // biar bisa geser di HP
+            container.style.overflow = 'auto';
+            container.style.webkitOverflowScrolling = 'touch';
 
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
 
-            const containerWidth = container.clientWidth - 10;
+            const containerWidth = container.clientWidth;
 
+            // viewport asli
             const viewport = currentPdfPage.getViewport({
                 scale: 1
             });
+
+            // scale AWAL (pas lebar, tapi masih bisa di-zoom)
             const scale = containerWidth / viewport.width;
 
+            // anti blur (retina / iPhone)
+            const dpr = window.devicePixelRatio || 1;
+
             const scaledViewport = currentPdfPage.getViewport({
-                scale
+                scale: scale * dpr
             });
 
+            // ukuran render asli
             canvas.width = scaledViewport.width;
             canvas.height = scaledViewport.height;
+
+            // ukuran tampilan (penting!)
+            canvas.style.width = (scaledViewport.width / dpr) + 'px';
+            canvas.style.height = (scaledViewport.height / dpr) + 'px';
+
+            // biar natural di HP
+            canvas.style.display = 'block';
+            canvas.style.touchAction = 'manipulation'; // IZINKAN PINCH ZOOM
 
             container.appendChild(canvas);
 
@@ -268,6 +320,10 @@
             });
         }
 
+
+
+
+
         /* =========================
          * BUTTON FIT WIDTH
          * ========================= */
@@ -276,28 +332,8 @@
         }
 
         /* =========================
-         * DOWNLOAD
+         * BUTTON DOWNLOAD
          * ========================= */
-        // function downloadSlip() {
-        //     // buang .pdf kalau ada
-        //     conLog('code_file', code_file);
-        //     let filename = code_file['original_file'];
-
-        //     filename = filename.replace(/\.pdf$/i, '');
-
-        //     const url = `${APP_URL}/slip-download/${filename}`;
-
-        //     // iOS friendly download
-        //     const link = document.createElement('a');
-        //     link.href = url;
-        //     link.target = '_blank';
-        //     link.rel = 'noopener';
-        //     link.download = `${code_file['code_file']}.pdf`;
-
-        //     document.body.appendChild(link);
-        //     link.click();
-        //     document.body.removeChild(link);
-        // }
 
         function downloadSlip() {
             let originalFile = code_file['original_file'].replace(/\.pdf$/i, '');

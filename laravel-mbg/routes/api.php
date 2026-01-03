@@ -4,6 +4,7 @@ use App\Http\Controllers\API\DatabaseTableController;
 use App\Http\Controllers\API\GroupFormController;
 use App\Http\Controllers\DatabaseController;
 use App\Http\Controllers\DatabaseDataController;
+use App\Http\Controllers\RecruitmentController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -11,7 +12,15 @@ use Illuminate\Support\Facades\Route;
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
+Route::prefix('recruitment')->group(function () {
+    Route::post('store', [RecruitmentController::class, 'store']);
+    Route::post('cek-rekruitment', [RecruitmentController::class, 'getDataRecruitment']);
+    Route::post('get', [RecruitmentController::class, 'getData']);
+});
 
+Route::prefix('/mbg')->group(function () {
+    Route::get('/db/{table}', [DatabaseDataController::class, 'getTableData']);
+});
 
 Route::prefix('/database')->group(function () {
 

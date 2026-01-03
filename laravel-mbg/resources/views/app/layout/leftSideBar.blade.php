@@ -22,36 +22,42 @@
                     </ul>
                 </li>
                 @if (session('FILTER_APP')['USER']['role'] > 1)
-                <li>
-                    <div class="dropdown-divider"></div>
-                </li>
+                    <li>
+                        <div class="dropdown-divider"></div>
+                    </li>
 
-                <li>
-                    <div class="sidebar-small-cap">MANAGE</div>
-                </li>
-                <li>
-                    <a href="javascript:;" class="dropdown-toggle">
-                        <span class="micon bi-calendar-check-fill"></span><span class="mtext">ABSENSI</span>
-                    </a>
-                    <ul class="submenu">
-                        <li><a href="/manage/absensi">Absensi</a></li>
-                        <li><a href="/manage/izin">Izin</a></li>
-                        <li><a href="/manage/cuti">Cuti</a></li>
-                    </ul>
-                </li>
-                <li>
-                    <a href="javascript:;" id="payroll" class="dropdown-toggle">
-                        <span class="micon bi-journal-bookmark-fill"></span><span class="mtext">PAYROLL</span>
-                    </a>
-                    <ul class="submenu">
-                        <li id="slip"><a href="/payroll/slip">SLIP</a></li>
-                    </ul>
-                </li>
-                <li>
-                    <a href="sitemap.html" class="dropdown-toggle no-arrow">
-                        <span class="micon bi bi-box-seam"></span><span class="mtext">Recruitment</span>
-                    </a>
-                </li>
+                    <li>
+                        <div class="sidebar-small-cap">MANAGE</div>
+                    </li>
+                    <li>
+                        <a href="javascript:;" class="dropdown-toggle">
+                            <span class="micon bi-calendar-check-fill"></span><span class="mtext">ABSENSI</span>
+                        </a>
+                        <ul class="submenu">
+                            <li><a href="/manage/absensi">Absensi</a></li>
+                            <li><a href="/manage/izin">Izin</a></li>
+                            <li><a href="/manage/cuti">Cuti</a></li>
+                        </ul>
+                    </li>
+                @endif
+                @if (in_array('PAYROLL', session('FILTER_APP.DEFAULT_FILTER.FEATURE', [])))
+                    <li>
+
+                        <a href="javascript:;" id="payroll" class="dropdown-toggle">
+                            <span class="micon bi-journal-bookmark-fill"></span><span class="mtext">PAYROLL</span>
+                        </a>
+                        <ul class="submenu">
+                            <li id="slip"><a href="/payroll/slip">SLIP</a></li>
+                        </ul>
+                    </li>
+                @endif
+                {{-- @dump(session('FILTER_APP.DEFAULT_FILTER.FEATURE')) --}}
+                @if (in_array('RECRUITMENT', session('FILTER_APP.DEFAULT_FILTER.FEATURE', [])))
+                    <li>
+                        <a href="/manage/recruitment" class="dropdown-toggle no-arrow">
+                            <span class="micon bi bi-box-seam"></span><span class="mtext">Recruitment</span>
+                        </a>
+                    </li>
                 @endif
                 @if (session('FILTER_APP')['USER']['role'] >= 9)
                     <li>
@@ -73,25 +79,25 @@
                     </li>
                 @endif
                 @if (session('FILTER_APP')['USER']['role'] >= 9)
-                <li>
-                    <div class="dropdown-divider"></div>
-                </li>
+                    <li>
+                        <div class="dropdown-divider"></div>
+                    </li>
 
-                <li>
-                    <div class="sidebar-small-cap">SUPER USER</div>
-                </li>
-                <li>
-                    <a href="javascript:;" id="database" class="dropdown-toggle">
-                        <span class="micon bi bi-egg-fried"></span><span class="mtext">DATABASE</span>
-                    </a>
-                    <ul class="submenu">
-                        <li><a id="user" href="/database/user">User</a></li>
-                        <li><a id="menu" href="/database/menu">Menu</a></li>
-                        <li><a id="form" href="/database/form">Form</a></li>
-                        <li><a id="data" href="/database/data">Database</a></li>
-                        <li><a id="form" href="/database/blank">BLANK</a></li>
-                    </ul>
-                </li>
+                    <li>
+                        <div class="sidebar-small-cap">SUPER USER</div>
+                    </li>
+                    <li>
+                        <a href="javascript:;" id="database" class="dropdown-toggle">
+                            <span class="micon bi bi-egg-fried"></span><span class="mtext">DATABASE</span>
+                        </a>
+                        <ul class="submenu">
+                            <li><a id="user" href="/database/user">User</a></li>
+                            <li><a id="menu" href="/database/menu">Menu</a></li>
+                            <li><a id="form" href="/database/form">Form</a></li>
+                            <li><a id="data" href="/database/data">Database</a></li>
+                            <li><a id="form" href="/database/blank">BLANK</a></li>
+                        </ul>
+                    </li>
                 @endif
                 <li>
                     <div class="dropdown-divider"></div>
@@ -129,7 +135,7 @@
                         <span class="micon bi bi-cash-stack"></span><span class="mtext">Slip</span>
                     </a>
                 </li>
-                
+
                 <li>
                     <a href="/user" id="user" class="dropdown-toggle no-arrow">
                         <span class="micon bi bi-person-lines-fill"></span><span class="mtext">User</span>

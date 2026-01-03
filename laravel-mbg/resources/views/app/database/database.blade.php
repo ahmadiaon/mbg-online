@@ -440,6 +440,26 @@
             delete data_table['field_show'];
 
 
+            if (db['database_field_show'][code_table]) {
+                Object.entries(db['database_field_show'][code_table]).forEach(([key_field, fields]) => {
+                    let value_gabungan = '';
+                    // conLog('key_field', key_field);
+                    fields.forEach(items_field => {
+                        value_gabungan = value_gabungan + `${items_field.split_by}` + $(
+                            `#${code_table}-${items_field.field_show_code}`).val();
+                    });
+                    value_gabungan = value_gabungan.slice(1);
+                    let new_data_form = {
+                        name: key_field,
+                        value: value_gabungan
+                    }
+                    formArray.push(new_data_form);
+                });
+            }
+
+            conLog('formArray',formArray);
+            // return false;
+
             $.ajax({
                 url: '/api/database/data/storeData',
                 type: "POST",

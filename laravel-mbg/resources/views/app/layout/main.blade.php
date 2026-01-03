@@ -233,7 +233,7 @@
 </script>
 
 
-@include('app.layout.JSfunctionDatatable')
+@include('app.layout.JSFunctionDatatable')
 @yield('js_code')
 
 </html>

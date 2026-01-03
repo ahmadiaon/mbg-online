@@ -37,21 +37,26 @@
 
         let primary_key_field = null;
 
-        if (tableDataDetails == null) {
-            tableDataDetails = db['database_tables'][tableId];
-        }
-        primary_key_field = tableDataDetails['primary_table'];
+        // if (tableDataDetails == null) {
 
-        // conLog('tableDataDetails before sort', tableDataDetails);
+        // }
+
+
+        conLog('tableDataDetails before sort', tableDataDetails);
         // Mengurutkan berdasarkan sort_field (dikonversi ke angka)
         if (tableDataDetails == null || !tableDataDetails['fields'] || tableDataDetails.fields.length === 0) {
+            tableDataDetails = db['database_tables'][tableId];
+            primary_key_field = tableDataDetails['primary_table'];
+            conLog('tableDataDetails on null', tableDataDetails)
             tableDataDetails.fields = Object.values(db['database_tables'][tableId]['fields']);
         } else {
+            primary_key_field = tableDataDetails['primary_table'];
             db['database_tables'][tableId] = tableDataDetails;
             let new_data_dataset_object = {};
-            tableDataDetails['data'].forEach(data_array_dataset => {
+            Object.values(tableDataDetails['data']).forEach(data_array_dataset => {
                 new_data_dataset_object[data_array_dataset[primary_key_field]] = data_array_dataset;
             });
+            conLog('new_data_dataset_object', new_data_dataset_object)
             tableDataDetails['data'] = new_data_dataset_object;
             setDatabase('DATABASE', db);
         }
@@ -108,7 +113,7 @@
         fieldsTableFilterDatatable[TABLE_ID] = tableDataDetails['fields'];
 
         tableDataDetails['fields'].forEach(item => {
-            // conLog('item field', item)
+            conLog('item field', item)
             let val_visibility = false;
             if (item.visibility_data_field != 'block') {
                 if (item.visibility_data_field == 'show') {
@@ -130,15 +135,19 @@
                 let data_header = {
                     data: item.code_field,
                     render: function(data, type, row) {
+                        // conLog('data',data); // ini adalah value_data per field
+                        // conLog('row',row)
 
+                        // conLog('toUUID(row[primary_key_field])',toUUID(row[primary_key_field]))
                         let data_to_row = tableDataDetails_temp['data'][toUUID(row[primary_key_field])];
+                        // conLog('data_to_row',data_to_row)
                         if (data == null) {
                             return '';
                         }
 
                         switch (item.type_data_field) {
                             case 'DARI-TABEL':
-                                conLog('dataaaaaaaaaaaaa', data);
+                                // conLog('dataaaaaaaaaaaaa', data);
                                 if (item?.data_source?.table_data_source == 'KARYAWAN' || item
                                     .code_field == 'nrp' || item.code_field == 'employee_uuid' || item
                                     .code_field == 'NRP') {
@@ -149,7 +158,7 @@
                                     if (data_KARYAWAN === undefined) {
                                         return toUUID(data);
                                     }
-                                    conLog('data_KARYAWAN', data_KARYAWAN);
+                                    // conLog('data_KARYAWAN', data_KARYAWAN);
                                     let bgIsActive = (data_KARYAWAN?.['STATUS']?.['value_data'] ==
                                         'AKTIF') ? '' : 'secondary';
                                     return `<div class="name-avatar  bg-${bgIsActive}  d-flex align-items-center pr-2 pl-2 card-box w-100">
@@ -190,13 +199,76 @@
                                             </div>
 
                                         `;
+                                } else if (tableDataDetails_temp.menu_table == 'STAND-ALONE') {
+                                    let data_source_field = item.data_source;
+                                    if
+                                    // mengambil data dari db berdasarkan data_source
+                                    (data_source_field) {
+                                        let code_table_data_source = data_source_field[
+                                            'table_data_source'];
+                                        let field_get_data_source = data_source_field[
+                                            'field_get_data_source'];
+                                        let data_options =
+                                            db['database_tables'][code_table_data_source]?.join_data ??
+                                            db['database_tables'][code_table_data_source]?.data;
+                                        // conLog('data_options', data_options);
+                                        if (data_options) {
+                                            let data_from_source = data_options[toUUID(data)];
+                                            if (data_from_source) {
+                                                return data_from_source[field_get_data_source][
+                                                    'text_data'
+                                                ];
+                                            } else {
+                                                return toUUID(data);
+                                            }
+                                        } else {
+                                            return toUUID(data);
+                                        }
+                                    }
                                 } else {
+                                    if (!data_to_row?.[item.code_field]?.['text_data']) {
+                                        return 'errv' + data;
+                                    }
                                     return data_to_row[item.code_field]['text_data'];
                                 }
                                 break;
                             case 'TEXT':
                                 return `<div class="font-10 weight-300">
                                             ${data}
+                                        </div>`;
+                                break;
+                            case 'PDF':
+                                // data = 'abcd.pdf'; // ini hanya untuk testing
+                                let noPdf = removePdf(data);
+                                return `
+                                        <div class="d-inline-flex">
+                                            <div class="font-10 weight-300">
+                                                <a href="#" onclick="openPdf('${tableId}','${noPdf}')">
+                                                    <div class="btn btn-sm btn-outline-warning mr-1">
+                                                        <i class="icon-copy bi bi-file-pdf"></i>
+                                                    </div>
+                                                </a>
+                                                <a href="#" onclick="openPdfNewTab('${tableId}','${noPdf}')">
+                                                    <div class="btn btn-sm btn-outline-warning mr-1">
+                                                        <i class="icon-copy bi bi-file-arrow-up"></i>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        </div>`;
+                                break;
+                            case 'STATUS-RECRUITMENT':
+                                let color_status = 'outline-secondary'
+                                if (data == 'Disimpan') {
+                                    color_status = 'primary';
+                                } else if (data == 'Ditolak') {
+                                    color_status = 'danger';
+                                } else if (data == 'Diterima') {
+                                    color_status = 'success';
+                                } else if (data == 'Proses Interview') {
+                                    color_status = 'warning';
+                                }
+                                return `<div class="font-12 weight-500">
+                                            <button class="btn btn-${color_status} btn-sm" >${data}</button>
                                         </div>`;
                                 break;
                             default:

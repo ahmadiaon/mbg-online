@@ -29,6 +29,38 @@ use PhpOffice\PhpSpreadsheet\Reader\Exception;
 
 class DatabaseController extends Controller
 {
+    public function showPdf($folder, $filename)
+    {
+        // whitelist folder
+        $allowedFolders = [
+            'slips',
+            'recruitments',
+        ];
+
+        if (!in_array($folder, $allowedFolders)) {
+            abort(403, 'Folder tidak diizinkan');
+        }
+
+        // sanitasi nama file
+        $filename = basename($filename);
+
+        $path = public_path("file/{$folder}/{$filename}.pdf");
+
+        if (!File::exists($path)) {
+            abort(404, 'File PDF tidak ditemukan');
+        }
+
+        return response()->stream(function () use ($path) {
+            readfile($path);
+        }, 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $filename . '.pdf"',
+            'Accept-Ranges'       => 'bytes',
+            'Cache-Control'       => 'no-store, no-cache, must-revalidate',
+            'Pragma'              => 'no-cache',
+        ]);
+    }
+
     public function downloadExcel(Request $request)
     {
         $file = $request->file;
@@ -927,7 +959,7 @@ class DatabaseController extends Controller
         return ResponseFormatter::ResponseJson($files, 'success', 200);
     }
 
-     public function showSlip($filename)
+    public function showSlip($filename)
     {
         // Lokasi file sebenarnya (pilih salah satu)
         // $path = storage_path('app/public/file/slips/' . $filename);
@@ -942,9 +974,7 @@ class DatabaseController extends Controller
 
         return response()->file($path, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="'.$filename.'"'
+            'Content-Disposition' => 'inline; filename="' . $filename . '"'
         ]);
     }
-
-    
 }

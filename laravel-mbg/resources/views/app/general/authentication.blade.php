@@ -85,6 +85,7 @@
         }).then(function() {
             // Baru redirect setelah refreshSession selesai
             console.log('here we go')
+            // console.log(db);
             window.location.href = "/app";
         }).catch(function(err) {
             console.error('Error:', err);

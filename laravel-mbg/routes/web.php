@@ -4,6 +4,7 @@ use App\Http\Controllers\DatabaseController;
 use App\Http\Controllers\DatabaseDataController;
 use App\Http\Controllers\GeneralRouteController;
 use App\Http\Controllers\PersonalController;
+use App\Http\Controllers\RecruitmentController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
@@ -27,6 +28,8 @@ Route::get('/slip/{filename}', function ($filename) {
         'Accept-Ranges' => 'bytes',
     ]);
 });
+
+Route::get('/file/{folder}/{filename}', [DatabaseController::class, 'showPdf']);
 
 Route::get('/slip-download/{filename}/{downloadName}', function ($filename, $downloadName) {
 
@@ -65,6 +68,11 @@ Route::middleware(['auth.login'])->group(function () {
 
     Route::prefix('/payroll')->group(function () {
         Route::get('/slip', [GeneralRouteController::class, 'managePayrollSlip']);
+        Route::post('/slip', [DatabaseController::class, 'slipStore']);
+    });
+
+    Route::prefix('/manage')->group(function () {
+        Route::get('/recruitment', [GeneralRouteController::class, 'manageRecruitment']);
         Route::post('/slip', [DatabaseController::class, 'slipStore']);
     });
 

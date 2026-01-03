@@ -28,6 +28,11 @@ class GeneralRouteController extends Controller
     {
         return view('app.payroll.manageSlip');
     }
+    public function manageRecruitment()
+    {
+        // dd(session()->all());
+        return view('app.manage.manageRecruitment');
+    }
 
     public function mySlip(){
         return view('app.personal.mySlip');        
