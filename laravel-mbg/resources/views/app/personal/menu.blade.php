@@ -30,8 +30,9 @@
                                 <h4>
                                     <a href="/my-slip">SLIP</a>
                                 </h4>
+                                <a href="/my-slip">
                                 <span>Informasi mengenai slip gaji anda </span>
-                                <a href="/my-slip"><span class="badge bg-primary"><i
+                                <span class="badge bg-primary"><i
                                             class="icon-copy bi bi-arrow-return-right"></i></span></a>
                             </div>
                         </div>
