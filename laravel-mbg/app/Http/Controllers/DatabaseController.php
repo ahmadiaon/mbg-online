@@ -498,6 +498,8 @@ class DatabaseController extends Controller
             $colIndex++;
         }
 
+
+
         // ============================================
         // 2. AMBIL SEMUA ROW EXCEL
         // ============================================
@@ -505,6 +507,10 @@ class DatabaseController extends Controller
         $uuid_row = [];
         for ($r = 5; $r <= $row_limit; $r++) {
             $uuid_row[$r] = Str::uuid();
+            $isNotNUllValue = $sheet->getCell("D{$r}")->getValue();
+            if ($isNotNUllValue === null || $isNotNUllValue === '') {
+                break; // berhenti saat ketemu kosong (berurutan)
+            }
             foreach ($column_fields as $col => $meta) {
 
                 $raw = $sheet->getCell($col . $r)->getValue();
@@ -520,8 +526,13 @@ class DatabaseController extends Controller
         }
         $status_kerja = [];
         if (in_array('STATUS-KERJA-KARYAWAN', array_keys($properties_data_table))) {
-            $status_kerja = $arr_value['STATUS-KERJA-KARYAWAN'] + [];
+
+            foreach ($arr_value['KARYAWAN'] as $r_6 => $rows_3) {
+                $arr_value['STATUS-KERJA-KARYAWAN'][$r_6]['STATUS'] = 'AKTIF';
+            }
         }
+
+
 
 
         if (in_array('KONTRAK-KARYAWAN', array_keys($properties_data_table))) {
@@ -696,15 +707,28 @@ class DatabaseController extends Controller
 
             $Q_store_insert = DatabaseData::insert($insert);
         }
-        return ResponseFormatter::ResponseJson([
-            "users_to_upsert" => $users_to_upsert,
-            "UUID_ROW" => $uuid_row,
-            'detaexiting' => $uuid_row,
-            "insert" => $insert,
-            "upsert" => $upsert,
-            "Q_store_insert" => $Q_store_insert
-        ], "Optimized import success", 200);
+        // return ResponseFormatter::ResponseJson([
+        //     'column_fields' => $column_fields,
+        //     'arr_value' => $arr_value,
+        //     'status_kerja'  => $status_kerja,
+        //     'row_limit'    => $row_limit,
+        //     "users_to_upsert" => $users_to_upsert,
+        //     "UUID_ROW" => $uuid_row,
+        //     'detaexiting' => $uuid_row,
+        //     "insert" => $insert,
+        //     "upsert" => $upsert,
+        //     "Q_store_insert" => $Q_store_insert
+        // ], "Optimized import success", 200);
 
+
+        /* 
+        PERUSAHAAN
+        PROJECT
+        DEPARTEMENT
+        DIVISI
+        JABATAN
+        KARYAWAN
+        */
 
 
 
@@ -778,17 +802,62 @@ class DatabaseController extends Controller
 
     public function exportDatatable(Request $request)
     {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $abjads = ResponseFormatter::abjads();
         $database_datatable = $request->code_table;
 
         $session_data = session('DATABASE');
         $data_table = $session_data['database_tables'][$database_datatable];
-        $field_exports = isset($data_table['join_fields']) ? $data_table['join_fields'] : $data_table['fields'];
+        $isJoin = false;
+        if ($data_table['parent_table']) {
+            $isJoin = true;
+            $database_datatable = $data_table['parent_table'];
+            $data_table = $session_data['database_tables'][$database_datatable];
+        }
 
 
-        $abjads = ResponseFormatter::abjads();
 
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
+        $field_exports = [];
+        $colIndex = 4;
+        foreach ($data_table['fields'] as $code_field => $field) {
+            $field['COL'] = $abjads[$colIndex];
+            $field_exports[$database_datatable][$code_field] = $field;
+            if ($field['type_data_field'] == 'GABUNGAN') {
+                continue;
+            }
+            $sheet->setCellValue($abjads[$colIndex] . '1', $field['description_field']);
+            $sheet->setCellValue($abjads[$colIndex] . '2', $field['code_table_field']);
+            $colIndex++;
+        }
+
+        $table_childs = [];
+        if (isset($session_data['database_tables_child'][$database_datatable])) {
+            $table_childs = $session_data['database_tables_child'][$database_datatable];
+            $isJoin = true;
+            foreach ($table_childs as $code_table_child) {
+                $child_fields = $session_data['database_tables'][$code_table_child]['fields'];
+                foreach ($child_fields as $code_field => $field) {
+                    $field['COL'] = $abjads[$colIndex];
+                    $field_exports[$code_table_child][$code_field] = $field;
+                    if ($field['type_data_field'] == 'GABUNGAN') {
+                        continue;
+                    }
+                    if ($field['code_field'] == $data_table['primary_table']) {
+                        continue;
+                    }
+                    $sheet->setCellValue($abjads[$colIndex] . '1', $field['description_field']);
+                    $sheet->setCellValue($abjads[$colIndex] . '2', $field['code_table_field']);
+                    $colIndex++;
+                }
+            }
+        }
+
+
+
+
+
+
 
         // =============================
         // HEADER UTAMA
@@ -798,46 +867,58 @@ class DatabaseController extends Controller
         $sheet->setCellValue('A3', 'URUTAN');
         $sheet->setCellValue('A5', 'NAMA TABEL');
         $sheet->setCellValue('A6', $data_table['description_table']);
-
         $sheet->setCellValue('C1', 'TANGGAL UPDATE');
         $sheet->setCellValue('D1', 'No.');
 
         // =============================
         // HEADER FIELD EXPORT
         // =============================
-        $colIndex = 4; // E
-        foreach ($field_exports as $field) {
-            $sheet->setCellValue($abjads[$colIndex] . '1', $field['description_field']);
-            $sheet->setCellValue($abjads[$colIndex] . '2', $field['code_table_field']);
-            $colIndex++;
-        }
 
         // =============================
         // ISI DATA
         // =============================
         $rowIndex = 5;
         $num = 1;
-        $data_export = isset($data_table['join_data']) ? $data_table['join_data'] : $data_table['data'];
+        $data_export = $data_table['data'];
+        $row_data_excel = [];
         foreach ($data_export ?? [] as $code_data => $item_export) {
-
             $sheet->setCellValue('D' . $rowIndex, $num);
 
             $fieldCol = 4;
-
-            foreach ($field_exports as $field) {
-                $code = $field['code_field'];
-
-                if (!empty($item_export[$code])) {
-                    $value = $item_export[$code]['text_data'];
-                    $sheet->setCellValue($abjads[$fieldCol] . $rowIndex, $value);
+            foreach ($item_export as $code_field_data => $value_data) { // loop field data
+                if ($data_table['fields'][$code_field_data]['type_data_field'] == 'GABUNGAN') {
+                    continue;
                 }
-
-                $fieldCol++;
+                $row_data_excel[$code_data] = $rowIndex;
+                $value = $value_data['text_data'];
+                $row_field_code = $field_exports[$database_datatable][$code_field_data]['COL'];
+                $sheet->setCellValue($row_field_code . $rowIndex, $value);
             }
-
             $num++;
             $rowIndex++;
         }
+
+        if ($isJoin) {
+            $table_childs = $session_data['database_tables_child'][$database_datatable];
+            foreach ($table_childs as $code_table_child) {
+                $child_fields = $session_data['database_tables'][$code_table_child];
+
+                foreach ($child_fields['data'] ?? [] as $code_data_child => $data_childs) { //loop data chield
+                    foreach ($data_childs as $code_field_child => $properties_data_child) { // loop data field data
+                        if ($child_fields['fields'][$code_field_child]['type_data_field'] == 'GABUNGAN' || $code_field_child == $data_table['primary_table']) {
+                            continue;
+                        }
+                        $rowIndex_CHILD = $row_data_excel[$code_data_child];
+                        $value = $properties_data_child['text_data'];
+                        $row_field_code = $field_exports[$code_table_child][$code_field_child]['COL'];
+                        $sheet->setCellValue($row_field_code . $rowIndex_CHILD, $value);
+                    }
+                }
+            }
+        }
+
+
+
 
         // =============================
         // STYLE HEADER

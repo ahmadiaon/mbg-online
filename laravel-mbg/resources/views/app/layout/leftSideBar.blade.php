@@ -59,7 +59,7 @@
                         </a>
                     </li>
                 @endif
-                @if (session('FILTER_APP')['USER']['role'] >= 9)
+                @if (session('FILTER_APP')['USER']['role'] >= 20)
                     <li>
                         <div class="dropdown-divider"></div>
                     </li>
