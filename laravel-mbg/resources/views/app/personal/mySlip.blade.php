@@ -120,7 +120,7 @@
                         code_field: 'month',
                         description_field: 'Bulan',
                         visibility_data_field: 'show',
-                        type_data_field: 'TEXT',
+                        type_data_field: 'MONTH',
                     },
                 }
             }
@@ -129,7 +129,7 @@
                 tableId: 'slips',
                 tableDataDetails: {},
                 datasetTable: null,
-                paggingDatatable: true,
+                paggingDatatable: false,
                 staticName: null,
                 isDeleteAction: false
             };
@@ -199,6 +199,7 @@
          * TAMPILKAN PDF KE CARD
          * ========================= */
         async function showdoc(filename) {
+            goToPreview();
             filename = filename.replace(/\.pdf$/i, '');
             const pdfUrl = `${APP_URL}/slip/${filename}`;
 

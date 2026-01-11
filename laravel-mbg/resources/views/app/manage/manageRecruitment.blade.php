@@ -268,7 +268,7 @@
                 `${data_detail.provinsi}, ${data_detail.kabupaten}, ${data_detail.kecamatan}, ${data_detail.address_description} `
             );
             $('.posisi').text(db['database_tables']['JABATAN']['data'][data_detail.position]['JABATAN']['value_data']);
-            $(".file_cv").attr("onclick", `openPdfNewTab('recruitments', '${data_detail.file}')`);
+            $(".file_cv").attr("onclick", `openPdfNewTab('recruitments', '${code_data}')`);
             $(".phone_number_wa").attr("href", `https:wa.me/${data_detail.phone_number}`);
             $('#small-modal').modal('show');
         }

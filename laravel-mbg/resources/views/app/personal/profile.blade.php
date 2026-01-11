@@ -38,7 +38,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <h5 class="text-center h5 mb-0">MBLE-0422003</h5>
+                                    <h5 class="text-center h5 mb-0 user-nrp">MBLE-0422003</h5>
                                     <p class="text-center text-muted font-16 user-name">
                                         {nama}
                                     </p>
@@ -131,6 +131,7 @@
                 console.error('Tabel tidak ditemukan:', codeTabel);
                 return;
             }
+            $('.user-nrp').text(db['FILTER_APP']['PROFILE']['NRP']['text_data']);
 
 
 

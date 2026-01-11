@@ -271,6 +271,18 @@
                                             <button class="btn btn-${color_status} btn-sm" >${data}</button>
                                         </div>`;
                                 break;
+                            case 'MONTH':
+                                const monthNames = [
+                                    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+                                    "Juli", "Agustus", "September", "Oktober", "November",
+                                    "Desember"
+                                ];
+                                let monthIndex = parseInt(data) - 1;
+                                let monthName = monthNames[monthIndex] || data;
+                                return `<div class="font-12 weight-500">
+                                            ${monthName}
+                                        </div>`;
+                                break;
                             default:
                                 return `<div class="font-12 weight-500 text-muted">
                                 ${item.type_data_field + ': ' + data}
@@ -328,7 +340,7 @@
 
         $('#datatable-' + idElementTable + '-wrapper').empty();
         let element_datatable = `
-            <table id="datatable-${idElementTable}" class="display cell-border" style="width:100%">
+            <table id="datatable-${idElementTable}" class="display table table-striped table-bordered" style="width:100%">
                 <thead>
                 ${ui_header_table}
                 </thead>
@@ -345,7 +357,8 @@
         };
 
         // Jika paggingDatatable true → tambahkan scroll
-        if (paggingDatatable) {
+
+        if (paggingDatatable) {} else {
             options.scrollY = '400px';
             options.scrollX = true;
         }
@@ -672,7 +685,7 @@
 
             const field = dataTableField[key];
 
-            const {
+            let {
                 code_table_field,
                 code_field,
                 data_source,
@@ -693,7 +706,7 @@
             const baseAttr =
                 `${is_disabled} name="${code_field}" id="${full_code_field}" class="form-control ${tableCode}"`;
 
-
+            type_data_field = type_data_field ?? 'TEXT';
             switch (type_data_field.toUpperCase()) {
                 case 'TEXT':
                     formField += `

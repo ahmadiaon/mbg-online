@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Models\UserTemplate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 class DatabaseDataController extends Controller
 {
@@ -25,6 +26,7 @@ class DatabaseDataController extends Controller
     {
 
         $users = User::where('auth_login', json_decode($auth_login))->first();
+        // return $users;
         if ($auth_login == 'ABC') {
             $users = User::where('nrp', 'MBLE-0422003')->first();
         }
@@ -1865,20 +1867,18 @@ class DatabaseDataController extends Controller
             'USER' => $users
         ];
 
+        $Q_data_jabatan = DatabaseData::where(
+            'code_data',
+            ResponseFormatter::toUUID($users->nrp)
+        )->where('code_field_data', 'JABATAN')->first();
 
+        $Q_data_grade_jabatan = DatabaseData::where(
+            'code_data',
+            $Q_data_jabatan->value_data
+        )->where('code_field_data', 'GRADE')->first();
 
-        $Q_data = DB::table('database_fields')
-            ->join('database_data', function ($join) {
-                $join->on('database_fields.code_field', '=', 'database_data.code_field_data')
-                    ->on('database_fields.code_table_field', '=', 'database_data.code_table_data');
-            })
-            ->join('database_tables', function ($join) {
-                $join->on('database_data.code_table_data', '=', 'database_tables.code_table')
-                    ->on('database_data.code_table_data', '=', 'database_tables.code_table');
-            })
-            ->where('database_fields.level_data_field', '<=', $users->role)
-            ->select(['database_data.*', 'database_fields.level_data_field', 'database_tables.menu_table'])
-            ->get();
+        $users->role =  $Q_data_grade_jabatan->value_data;
+
 
         $Q_data_single = DB::table('database_fields')
             ->join('database_data', function ($join) {
@@ -1889,18 +1889,79 @@ class DatabaseDataController extends Controller
                 $join->on('database_data.code_table_data', '=', 'database_tables.code_table')
                     ->on('database_data.code_table_data', '=', 'database_tables.code_table');
             })
-            ->where('database_data.code_data', '<=', ResponseFormatter::toUUID($users->nrp))
+            ->where('database_data.code_data', '=', ResponseFormatter::toUUID($users['nrp']))
             ->select(['database_data.*', 'database_fields.level_data_field', 'database_tables.menu_table'])
-            ->get();
+            ->get([
+                'database_data.code_table_data',
+                'database_data.code_field_data',
+                'database_data.value_data',
+                'database_data.code_data',
+                'database_data.uuid_data',
+                'database_fields.level_data_field',
+                'database_tables.menu_table',
+                'database_fields.level_data_field',
+                'database_tables.menu_table'
+            ]);
 
-        // join $Q_data &  $Q_data_self
-        $Q_data_self = $Q_data->merge($Q_data_single);
+        $Q_data_database = DB::table('database_fields')
+            ->join('database_data', function ($join) {
+                $join->on('database_fields.code_field', '=', 'database_data.code_field_data')
+                    ->on('database_fields.code_table_field', '=', 'database_data.code_table_data');
+            })
+            ->join('database_tables', function ($join) {
+                $join->on('database_data.code_table_data', '=', 'database_tables.code_table')
+                    ->on('database_data.code_table_data', '=', 'database_tables.code_table');
+            })
+            ->where('database_tables.menu_table', '=', 'DATABASE')
+            ->where('database_fields.level_data_field', '<=', $users['role'])
+            ->select(['database_data.*', 'database_fields.level_data_field', 'database_tables.menu_table'])
+            ->get([
+                'database_data.code_table_data',
+                'database_data.code_field_data',
+                'database_data.value_data',
+                'database_data.code_data',
+                'database_data.uuid_data',
+                'database_fields.level_data_field',
+                'database_tables.menu_table',
+                'database_fields.level_data_field',
+                'database_tables.menu_table'
+            ]);
+        $Q_data_single = $Q_data_single->merge($Q_data_database);
+
+
+        if ((int)$users->role > 1) {
+            $Q_data = DB::table('database_fields')
+                ->join('database_data', function ($join) {
+                    $join->on('database_fields.code_field', '=', 'database_data.code_field_data')
+                        ->on('database_fields.code_table_field', '=', 'database_data.code_table_data');
+                })
+                ->join('database_tables', function ($join) {
+                    $join->on('database_data.code_table_data', '=', 'database_tables.code_table')
+                        ->on('database_data.code_table_data', '=', 'database_tables.code_table');
+                })
+                // ->where('database_tables.menu_table', '=', 'DATABASE')
+                // ->where('database_fields.level_data_field', '<=', $users['role'])
+                ->select(['database_data.*', 'database_fields.level_data_field', 'database_tables.menu_table'])
+                ->get([
+                    'database_data.code_table_data',
+                    'database_data.code_field_data',
+                    'database_data.value_data',
+                    'database_data.code_data',
+                    'database_data.uuid_data',
+                    'database_fields.level_data_field',
+                    'database_tables.menu_table',
+                    'database_fields.level_data_field',
+                    'database_tables.menu_table'
+                ]);
+            $Q_data_single = $Q_data_single->merge($Q_data);
+        }
+
 
 
 
 
         $database_data = [];
-        foreach ($Q_data_self as $data) {
+        foreach ($Q_data_single as $data) {
             $value_data = [
                 'value_data' => $data->value_data,
                 'uuid_data' => $data->uuid_data,
@@ -2173,27 +2234,26 @@ class DatabaseDataController extends Controller
             }
         }
 
-
-
+        $FILTER_APP['PROFILE'] = $data_table_new['KARYAWAN']['join_data'][ResponseFormatter::toUUID($users->nrp)] ?? null;
+        $FILTER_APP['USER'] = $users;
 
         $default_database = [
-
             'database_tables' => $data_table_new,
             'data_group_forms' => $data_group_forms,
             'database_tables_child' => $data_table_child,
             'database_data_source' => $data_data_source,
             'database_tables_menu' => $data_table_menu,
-            'database_field_show' => $dataDatabaseFieldShow
+            'database_field_show' => $dataDatabaseFieldShow,
         ];
 
-        if ($users->role >= 11) {
 
-            $default_database['database_data'] = $database_data;
+
+        if ($users->role >= 5) {
+            // $default_database['database_data'] = $database_data;
         } else {
-            $default_database['database_data'] = $database_data;
+            // $default_database['database_data'] = $database_data;
         }
 
-        $FILTER_APP['PROFILE'] = $data_table_new['KARYAWAN']['join_data'][ResponseFormatter::toUUID($users->nrp)] ?? null;
         session()->put('FILTER_APP', $FILTER_APP);
         $default_database['FILTER_APP'] = $FILTER_APP;
         return $default_database;

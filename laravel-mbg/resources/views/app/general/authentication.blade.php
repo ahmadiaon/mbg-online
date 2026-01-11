@@ -75,7 +75,8 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     @include('app.layout.JSData')
     <script>
-        
+        let randNumber = Math.floor(Math.random() * 1000);
+        localStorage.setItem('randNumber', randNumber);
         getReadyDatabase().then(function(db) {
             console.log('Database ready:', db);
             // return refreshSession().then(function() {
@@ -85,7 +86,9 @@
         }).then(function() {
             // Baru redirect setelah refreshSession selesai
             console.log('here we go')
+            console.log('indexedDBInstance');
             // console.log(db);
+            console.log(indexedDBInstance);
             window.location.href = "/app";
         }).catch(function(err) {
             console.error('Error:', err);

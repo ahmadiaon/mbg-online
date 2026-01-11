@@ -399,6 +399,7 @@ class DatabaseController extends Controller
     {
 
         $request_data = $request->all();
+        // return ResponseFormatter::ResponseJson($request_data, "destroy database", 200);
         foreach ($request_data['data_text'] as $item) {
             $result[$item['name']] = $item['value'];
         }

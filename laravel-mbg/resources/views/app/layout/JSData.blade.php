@@ -80,9 +80,9 @@
 
         return new Promise((resolve, reject) => {
             console.log('[INIT] Membuka IndexedDB...');
-
-            const request = indexedDB.open("MyAppDB", 1);
-
+            randNumber = localStorage.getItem('randNumber');
+            const request = indexedDB.open("MyAppDB-" + randNumber, 1);
+            console.log('randNumber di initDatabase: ' + randNumber);
             request.onupgradeneeded = function(event) {
                 console.log('[UPGRADE] onupgradeneeded terjadi');
 
@@ -122,7 +122,7 @@
 
             request.onblocked = function() {
                 console.warn(
-                '[BLOCKED] IndexedDB diblokir. Tutup tab browser lain yang buka DB yang sama.');
+                    '[BLOCKED] IndexedDB diblokir. Tutup tab browser lain yang buka DB yang sama.');
             };
         });
     }
@@ -226,14 +226,15 @@
     }
 
     // Get data dari IndexedDB
-    function getDatabase(key) {
-        console.log('getDatabase : ' + key)
+    async function getDatabase(key) {
+        console.log('getDatabase : ' + key);
+
         return new Promise((resolve, reject) => {
+
             if (!indexedDBInstance) {
                 reject(new Error('IndexedDB not initialized'));
                 return;
             }
-
             try {
                 const tx = indexedDBInstance.transaction('storage', 'readonly');
                 const store = tx.objectStore('storage');
@@ -258,9 +259,19 @@
                     console.error('Transaction error:', event);
                     reject(event.target.error || new Error('IndexedDB transaction failed'));
                 };
+                console.log('getDatabase selesai', indexedDBInstance);
             } catch (err) {
                 reject(err);
             }
         });
+    }
+
+    function closeDatabase() {
+        if (indexedDBInstance) {
+            indexedDBInstance.close();
+            indexedDBInstance = null;
+            dbPromise = null;
+            console.log('IndexedDB ditutup manual');
+        }
     }
 </script>

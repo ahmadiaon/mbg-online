@@ -435,9 +435,10 @@
                 ...db['database_tables'][code_table]
             };
 
-            delete data_table['join_fields'];
-            delete data_table['join_data'];
-            delete data_table['field_show'];
+
+            // delete data_table['join_fields'];
+            // delete data_table['join_data'];
+            // delete data_table['field_show'];
 
 
             if (db['database_field_show'][code_table]) {
@@ -457,15 +458,23 @@
                 });
             }
 
-            conLog('formArray',formArray);
+            let table_description = {
+                'code_table': data_table['code_table'],
+                'parent_table': data_table['parent_table'],
+                'primary_table': data_table['primary_table'],
+                'description_table': data_table['description_table']
+            };
+
+            conLog('formArray', formArray);
+            conLog('data_table', data_table);
             // return false;
 
             $.ajax({
                 url: '/api/database/data/storeData',
                 type: "POST",
                 data: {
-                    data_table: data_table,
                     data_text: formArray,
+                    data_table: table_description,
                 },
                 success: function(response) {
                     let primary = db['database_tables'][code_table]['primary_table'];
