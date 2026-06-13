@@ -8,26 +8,42 @@
     let TABLE_ID = null;
     let GROUP_DATA = 'database_datas';
     let DELETE_ID_CODE_DATA = "";
+    let datatableIdElement = '';
+
+
+    let showIcon = 'show-field icon-copy bi bi-eye';
+    let hideIcon = 'show-field icon-copy bi bi-eye-slash';
+    let freezeIcon = 'frozen icon-copy bi bi-snow2';
+    let unfreezeIcon = 'frozen icon-copy bi bi-snow';
+
+
+
 
     // Fungsi untuk menginisialisasi DataTable
     function initDataTable(arrParameter) {
         conLog('FUNCTIOM ====== initDataTable', arrParameter);
+        let ON_FILTER = getLocalStorage('FILTER-APP');
         let tableId = arrParameter.tableId || '';
         let tableDataDetails = arrParameter.tableDataDetails || null;
         let datasetTable = arrParameter.datasetTable || {};
         let paggingDatatable = arrParameter.paggingDatatable !== undefined ? arrParameter.paggingDatatable : true;
         let staticName = arrParameter.staticName || null;
-
+        let header_table_support = '';
+        datatableIdElement = staticName ? staticName : tableId;
         TABLE_ID = tableId;
         dataSetFilter = allDataFilter?.[TABLE_ID]?.dataSetFilter;
+        conLog('dataSetFilter awal', dataSetFilter);
 
         let idElementTable = arrParameter.staticName ? arrParameter.staticName : tableId;
+
+
+
 
         if (Array.isArray(dataSetFilter) && dataSetFilter.length >
             0) {
 
             // conLog('dataSetFilter on initial if', dataSetFilter);
-            let table = $('#datatable-' + idElementTable).DataTable();
+            let table = $('#datatable-' + datatableIdElement).DataTable();
 
             table.clear();
             table.rows.add(dataSetFilter);
@@ -42,45 +58,51 @@
         // }
 
 
-        conLog('tableDataDetails before sort', tableDataDetails);
+        // conLog('tableDataDetails before sort', tableDataDetails);
         // Mengurutkan berdasarkan sort_field (dikonversi ke angka)
         if (tableDataDetails == null || !tableDataDetails['fields'] || tableDataDetails.fields.length === 0) {
             tableDataDetails = db['database_tables'][tableId];
             primary_key_field = tableDataDetails['primary_table'];
-            conLog('tableDataDetails on null', tableDataDetails)
-            tableDataDetails.fields = Object.values(db['database_tables'][tableId]['fields']);
+            // conLog('tableDataDetails on null', tableDataDetails)
+            tableDataDetails.fields = db['database_tables'][tableId]['fields'];
         } else {
             primary_key_field = tableDataDetails['primary_table'];
             db['database_tables'][tableId] = tableDataDetails;
             let new_data_dataset_object = {};
-            Object.values(tableDataDetails['data']).forEach(data_array_dataset => {
-                new_data_dataset_object[data_array_dataset[primary_key_field]] = data_array_dataset;
+            Object.entries(tableDataDetails['data']).forEach(([key_nrp, data_array_dataset]) => {
+                new_data_dataset_object[key_nrp] = data_array_dataset;
             });
-            conLog('new_data_dataset_object', new_data_dataset_object)
+            // conLog('new_data_dataset_object', new_data_dataset_object)
             tableDataDetails['data'] = new_data_dataset_object;
-            setDatabase('DATABASE', db);
+            if (!db['database_tables'][tableId]) {
+                setDatabase('DATABASE', db);
+            }
+
         }
 
-        conLog('db new', db)
-        if (typeof tableDataDetails['fields'] == 'object') {
-            tableDataDetails['fields'] = Object.values(tableDataDetails['fields']);
-        }
-        tableDataDetails['fields'].sort((a, b) => Number(a.sort_field) - Number(b.sort_field));
+        conLog('tableDataDetails before sort', tableDataDetails);
+
+
+        // conLog('db new', db)
+        // if (typeof tableDataDetails['fields'] == 'object') {
+        //     tableDataDetails['fields'] = Object.values(tableDataDetails['fields']);
+        // }
+        // tableDataDetails['fields'].sort((a, b) => Number(a.sort_field) - Number(b.sort_field));
 
         hasChild = (db['database_tables_child'][tableId]) ? true : false;
 
-        conLog('tableDataDetails after sort', tableDataDetails);
+        // conLog('tableDataDetails after sort', tableDataDetails);
 
         let tableDataDetails_temp = structuredClone(tableDataDetails);
 
         if (!tableDataDetails.data || tableDataDetails.data.length === 0) {
-            conLog('dataset null', tableDataDetails.data);
+            // conLog('dataset null', tableDataDetails.data);
             if (hasChild) {
                 tableDataDetails.data = db['database_tables'][tableId]['join_data'];
             } else {
                 tableDataDetails.data = db['database_tables'][tableId]['data'];
             }
-            conLog('tableDataDetails.data NEW', tableDataDetails.data);
+            // conLog('tableDataDetails.data NEW', tableDataDetails.data);
 
             let result = null;
 
@@ -88,9 +110,99 @@
         if (tableDataDetails.data === undefined) {
             tableDataDetails.data = [];
         }
-        conLog('tableDataDetails temp', tableDataDetails_temp);
+        // conLog('tableDataDetails temp', tableDataDetails_temp);
 
-        conLog('tableDataDetails done', tableDataDetails.data);
+        // conLog('tableDataDetails done', tableDataDetails.data);
+        let lengthField = tableDataDetails['fields'].length;
+        let result_field = tableDataDetails['fields'];
+        let data_new = tableDataDetails['data'];
+        Object.values(tableDataDetails['fields']).forEach(item_dari_table => {
+            if (item_dari_table.type_data_field == 'DARI-TABEL') {
+                // TUJUAN MENAMBAH FIELD DARI TABEL YANG DI GET
+                // Kecuali field yang di get
+                // conLog('item_dari_table', item_dari_table);
+                let data_source_field_add_field = item_dari_table.data_source;
+                let table_data_source = db['database_tables'][data_source_field_add_field.table_data_source];
+                // conLog('xxxxxxxxxxxxxxxxxx=table_data_source :'+data_source_field_add_field.table_data_source, table_data_source);
+
+
+                Object.entries(tableDataDetails['data']).forEach(([key_data_datatable_dari_table,
+                    data_datatable_dari_table
+                ]) => {
+                    // conLog('data_datatable_dari_table :' + key_data_datatable_dari_table,
+                    //     data_datatable_dari_table);
+                    // conLog('item_dari_table.code_field', item_dari_table.code_field);
+                    // conLog('data_datatable_dari_table[item_dari_table.code_field][code_data]',
+                    //     data_datatable_dari_table[
+                    //         item_dari_table.code_field
+                    //     ]['value_data']);
+                    // conLog('table_data_source', table_data_source['data']);
+                    let data_sandingan_dari_table = table_data_source['data'][data_datatable_dari_table[
+                        item_dari_table.code_field
+                    ]['value_data']];
+
+                    // conLog('data_sandingan_dari_table ' + key_data_datatable_dari_table,
+                    //     data_sandingan_dari_table)
+                    if (data_sandingan_dari_table) {
+                        const prefixedObj = Object.fromEntries(
+                            Object.entries(data_sandingan_dari_table).map(([key, value]) => [
+                                `${item_dari_table.code_field}-${key}`,
+                                value
+                            ])
+                        );
+
+                        let result = {
+                            ...data_datatable_dari_table,
+                            ...prefixedObj
+                        };
+                        data_new[key_data_datatable_dari_table] = result;
+                    }
+
+
+
+
+                    // conLog('result', result);
+                    // conLog('data_new', data_new);
+                });
+                // conLog('data_new', data_new);
+
+
+                let ObjNewField = {
+                    ...table_data_source['fields']
+                };
+                conLog('ObjNewField', ObjNewField);
+                delete ObjNewField[data_source_field_add_field.field_get_data_source];
+                delete ObjNewField[table_data_source.primary_table];
+                Object.keys(ObjNewField).forEach(key => {
+                    ObjNewField[key] = {
+                        ...ObjNewField[key],
+                        visibility_data_field: 'hide',
+                        code_field: `${item_dari_table.code_field}-${key}`
+                    };
+                });
+
+                conLog('ObjNewField', ObjNewField);
+
+
+                result_field = {
+                    ...tableDataDetails['fields'],
+                    ...Object.values(ObjNewField)
+                };
+
+                // conLog('result_field', result_field);
+            }
+
+            tableDataDetails['fields'] = result_field;
+            tableDataDetails['data'] = data_new;
+        });
+
+
+        if (typeof tableDataDetails['fields'] == 'object') {
+            tableDataDetails['fields'] = Object.values(tableDataDetails['fields']);
+        }
+        tableDataDetails['fields'].sort((a, b) => Number(a.sort_field) - Number(b.sort_field));
+
+        // conLog('datatbale hasil join', tableDataDetails);
 
         if (tableDataDetails.data && tableDataDetails.menu_table != 'STAND-ALONE') {
             result = Object.values(tableDataDetails.data).map(fields =>
@@ -112,13 +224,26 @@
         $('#filter-datatable-list-field').empty();
         fieldsTableFilterDatatable[TABLE_ID] = tableDataDetails['fields'];
 
+
+
+
+        let countIdColor = 0;
+        let countField = 0;
+        let table_field_datatable = [];
+
+        // conLog('tableDataDetails ONE', tableDataDetails);
         tableDataDetails['fields'].forEach(item => {
-            conLog('item field', item)
+
+            // conLog('item field', item)
+
             let val_visibility = false;
-            if (item.visibility_data_field != 'block') {
-                if (item.visibility_data_field == 'show') {
-                    val_visibility = true;
-                }
+            if (item.visibility_data_field === 'show') {
+                val_visibility = true;
+            } else {
+                val_visibility = false;
+            }
+            if (item.visibility_data_field !== 'block') {
+
                 ui_header_table += `<th data-orderable="false" class="no-sort">
                                             ${item.description_field} 
                                             <div class="float-end"> 
@@ -132,17 +257,61 @@
                                         </th>`;
 
 
+                let iconShowField = showIcon;
+                if (tableDataDetails['field_show']) {
+                    if (!tableDataDetails['field_show'].includes(item.code_field)) {
+                        if (item.visibility_data_field != 'block') {
+                            item.visibility_data_field = 'hide';
+                            iconShowField = hideIcon;
+                        }
+                    }
+                }
+
+                if (!val_visibility) {
+                    iconShowField = hideIcon;
+                }
+                // INI UNTUK HEADER TABLE SUPPORT SHOW FILTER TOGGLE
+                header_table_support += `
+                                        <div class="btn-group mb-15">
+                                            <button type="button" disabled class="btn btn-${COLOR_BOOTSTRAP[countIdColor]}">${item.description_field}</button>
+                                            <button type="button" class="btn btn-light" >
+                                                <i onclick="filterDataTable('${tableId}','${item.code_field}')" class="icon-copy bi bi-funnel  mr-10"></i>
+                                                <i id="toggle-column-${tableId}-${num_header}" data-value="${item.visibility_data_field}" class="mr-10 ${iconShowField}" onclick="toggleColumnAuto('${tableId}', ${num_header})"></i>
+                                                
+                                                <i id="freeze-${num_header}" class=" ${unfreezeIcon}" onclick="toggleFreezeColumn('datatable-${tableId}', ${num_header})"></i>
+                                            </button>
+                                        </div>
+                                    `;
+                table_field_datatable.push({
+                    field: item.code_field,
+                    count: num_header
+                });
+
+                // INI UNTUK VALUE DATA
                 let data_header = {
                     data: item.code_field,
                     render: function(data, type, row) {
                         // conLog('data',data); // ini adalah value_data per field
-                        // conLog('row',row)
+
 
                         // conLog('toUUID(row[primary_key_field])',toUUID(row[primary_key_field]))
-                        let data_to_row = tableDataDetails_temp['data'][toUUID(row[primary_key_field])];
-                        // conLog('data_to_row',data_to_row)
+                        let data_to_row = tableDataDetails['data'][toUUID(row[primary_key_field])];
+                        // conLog('data_to_row ' + row[primary_key_field], data_to_row)
+                        if (data_to_row === undefined) {
+                            // conLog('data_to_row ' + row[primary_key_field], db['database_tables'][
+                            //     'KARYAWAN'
+                            // ]['join_data'][toUUID(row[primary_key_field])])
+                            // return 'errr'+data;
+
+                        }
                         if (data == null) {
                             return '';
+                        }
+
+                        if (item.code_field == 'NRP' || item.code_field == 'nrp' || item.code_field ==
+                            'employee_uuid') {
+                            item.type_data_field = 'DARI-TABEL';
+
                         }
 
                         switch (item.type_data_field) {
@@ -227,12 +396,21 @@
                                     }
                                 } else {
                                     if (!data_to_row?.[item.code_field]?.['text_data']) {
-                                        return 'errv' + data;
+                                        return 'errv ' + data;
                                     }
                                     return data_to_row[item.code_field]['text_data'];
                                 }
                                 break;
                             case 'TEXT':
+                                return `<div class="font-10 weight-300">
+                                            ${data}
+                                        </div>`;
+                                break;
+                            case 'DETAIL-ABSENSI':
+                                // data.forEach(data_absensi => {
+
+                                // });
+                                // conLog('data_absensies', data);
                                 return `<div class="font-10 weight-300">
                                             ${data}
                                         </div>`;
@@ -283,6 +461,156 @@
                                             ${monthName}
                                         </div>`;
                                 break;
+                            case 'ABSENSI': {
+
+                                let year = ON_FILTER.year;
+                                let month = ON_FILTER.month; // 1–12
+
+                                let data_absensies = Object.values(row[item.code_field] ?? []);
+                                let absenByDay = {};
+                                let nrp = row['nrp'] || row['NRP'] || row['employee_uuid'] || '';
+                                let count_absensi = {};
+
+                                // INIT COUNT DARI DATABASE ABSENSI
+                                Object.keys(db['database_tables']['DATABASE-ABSENSI']['data']).forEach(
+                                    k => {
+                                        count_absensi[k] = 0;
+                                    });
+
+                                // MAPPING DATA + HITUNG STATUS
+                                data_absensies.forEach(item => {
+                                    let day = parseInt(item.date.split('-')[2]);
+                                    absenByDay[day] = item;
+
+                                    let status = item.status_absen_uuid;
+                                    if (count_absensi[status] !== undefined) {
+                                        count_absensi[status]++;
+                                    }
+                                });
+
+                                // JUMLAH HARI
+                                let totalDays = new Date(year, month, 0).getDate();
+
+                                // HARI PERTAMA BULAN
+                                let firstDay = new Date(year, month - 1, 1).getDay();
+                                firstDay = firstDay === 0 ? 7 : firstDay;
+
+                                let calendarHtml = '';
+
+                                // ================= BAR HEADER =================
+                                // conLog(nrp, absenByDay);
+                                let maxValue = Math.max(...Object.values(count_absensi), 1);
+                                let headerBarHtml = '';
+                                Object.entries(count_absensi).forEach(([key, value]) => {
+
+                                    let warna = db['database_tables']['DATABASE-ABSENSI'][
+                                            'data'
+                                        ][key]
+                                        ?.['WARNA-ABSENSI']?.['value_data'] ?? '#999';
+
+                                    let widthPercent = (value / maxValue) * 100;
+                                    if (value > 0) {
+                                        headerBarHtml += `
+                                        <div class="absen-bar">
+                                            <div class="absen-label" style="background:${warna}">
+                                                ${key}
+                                            </div>
+
+                                            <div class="absen-track">
+                                                <div class="absen-fill"
+                                                    style="width:${widthPercent}%; background:${warna}">
+                                                </div>
+                                            </div>
+
+                                            <div class="absen-value">${value}</div>
+                                        </div>
+                                    `;
+                                    }
+
+                                });
+
+                                // SPACER
+                                for (let i = 1; i < firstDay; i++) {
+                                    calendarHtml += `<div class="calendar-cell empty"></div>`;
+                                }
+
+                                // LOOP TANGGAL
+                                for (let day = 1; day <= totalDays; day++) {
+
+                                    let shift = '-';
+                                    let status = '-';
+                                    let time = '- | -';
+                                    let late = 0;
+                                    let work = 0;
+                                    let bg = '#e9ecef';
+                                    // conLog('absenByDay[day] : ' + day, absenByDay);
+
+                                    if (absenByDay[day]) {
+                                        const absen = absenByDay[day];
+
+                                        shift = absen.shift ?? '-';
+                                        status = absen.status_absen_uuid ?? '-';
+                                        late = absen.late_points ?? 0;
+                                        work = absen.working_hours ?? 0;
+
+                                        if (absen.entry || absen.exit|| absen.mid) {
+                                            time =
+                                                `${absen.entry ?? '-'} | ${absen.mid != null ? absen.mid + '|' : ''} ${absen.exit ?? '-'}`;
+                                        }
+
+                                        bg = db['database_tables']['DATABASE-ABSENSI']['data'][status]
+                                            ?.['WARNA-ABSENSI']?.['value_data'] ?? bg;
+                                    }
+
+                                    calendarHtml += `
+                                        <a href="#">
+                                            <div class="absen-mini" id="${tableId}-absen-day-${nrp}-${day}">
+                                                <div class="row-1">
+                                                    <span class="shift">${shift}</span>
+                                                    <span class="status" style="background:${bg}">${status}</span>
+                                                    <span class="day">${day}</span>
+                                                </div>
+
+                                                <div class="row-2">${time}</div>
+
+                                                <div class="row-3">
+                                                    <span>L:${late}</span>
+                                                    <span>W:${work}</span>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    `;
+                                }
+
+                                // RETURN FINAL
+                                return `
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="d-flex flex-wrap gap-1">
+                                                    ${headerBarHtml}
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-8">
+                                                <div class="calendar-grid calendar-header">
+                                                    <div class="day sen">Sen</div>
+                                                    <div class="day sel">Sel</div>
+                                                    <div class="day rab">Rab</div>
+                                                    <div class="day kam">Kam</div>
+                                                    <div class="day jum">Jum</div>
+                                                    <div class="day sab">Sab</div>
+                                                    <div class="day min">Min</div>
+                                                </div>
+
+                                                <div class="calendar-grid calendar-body">
+                                                    ${calendarHtml}
+                                                </div>
+                                            </div>
+                                        </div>`;
+
+                            }
+                            break;
+
                             default:
                                 return `<div class="font-12 weight-500 text-muted">
                                 ${item.type_data_field + ': ' + data}
@@ -291,7 +619,7 @@
                         }
 
                     },
-                    visible: val_visibility
+                    visible: item.visibility_data_field === 'show' ? true : false
                 };
 
                 header_table.push(data_header);
@@ -306,8 +634,12 @@
                 num_header++;
             }
         });
+
+        conLog('table_field_datatable', table_field_datatable);
+        $('.field-show-' + datatableIdElement).empty();
+        $('.field-show-' + datatableIdElement).append(header_table_support);
         let text_actionButtonTable = `<th data-orderable="false" class="no-sort">AKSI</th>`;
-        ui_header_table += text_actionButtonTable;
+
 
         let actionButtonTable = {
             render: function(data, type, row) {
@@ -331,25 +663,36 @@
                     `;
             }
         };
-        header_table.push(actionButtonTable);
+        if (arrParameter?.isAction !== false) {
+            header_table.push(actionButtonTable);
+            ui_header_table += text_actionButtonTable;
+        }
+
 
         if (header_table.length === 0) {
             console.error('Header table kosong — tidak ada kolom yang dapat ditampilkan.');
             return;
         }
-
-        $('#datatable-' + idElementTable + '-wrapper').empty();
+        conLog('datatableidelement', datatableIdElement);
+        $('#datatable-' + datatableIdElement + '-wrapper').empty();
+        // if (tableId == 'absensies') {
+        //     conLog('tableDataDetails PERUSAHAAN', tableDataDetails);
+        //     if(abc == false){
+        //         return false;
+        //     }
+        //     // return false;
+        // }
         let element_datatable = `
-            <table id="datatable-${idElementTable}" class="display table table-striped table-bordered" style="width:100%">
+            <table id="datatable-${datatableIdElement}" class="display table table-striped table-bordered" style="width:100%">
                 <thead>
                 ${ui_header_table}
                 </thead>
             </table>
         `;
-        $('#datatable-' + idElementTable + '-wrapper').append(element_datatable);
+        $('#datatable-' + datatableIdElement + '-wrapper').append(element_datatable);
         initializeFilters();
         // Siapkan opsi dasar DataTable
-        conLog('dataSetFilter to datatable', dataSetFilter);
+        // conLog('dataSetFilter to datatable LATEST', dataSetFilter);
         let options = {
             data: dataSetFilter,
             columns: header_table,
@@ -364,15 +707,37 @@
         }
 
         // Inisialisasi DataTable
+        conLog('options DataTable :' + datatableIdElement, datatableIdElement);
+        let table = $('#datatable-' + datatableIdElement).DataTable(options);
+    }
 
-        let table = $('#datatable-' + idElementTable).DataTable(options);
+    function toggleColumnAuto(tableId, columnIndex) {
 
+
+        // Ambil status saat ini
+        const isVisible = $(`#toggle-column-${tableId}-${columnIndex}`).data('value') == 'show' ? true : false;
+        console.log('isVisible', $(`#toggle-column-${tableId}-${columnIndex}`).data('value'));
+        console.log(tableId, columnIndex);
+
+        // if (DATA_fieldsTableFilterDatatable[columnIndex]['visibility_data_field'] == 'show' ||
+        //     DATA_fieldsTableFilterDatatable[columnIndex]['visibility_data_field'] == 'hide') {
+        //     DATA_fieldsTableFilterDatatable[columnIndex]['visibility_data_field'] = isVisible ? 'hide' : 'show';
+        // }
+        const table = $('#datatable-' + datatableIdElement).DataTable(); // ambil instance aktif
+        // Toggle tampil / sembunyi
+        table.column(columnIndex).visible(!isVisible);
+
+
+        // Ubah ikon bila ada
+        const icon = document.getElementById(`toggle-column-${tableId}-${columnIndex}`);
+        icon.className = isVisible ? hideIcon : showIcon;
+        $(`#toggle-column-${tableId}-${columnIndex}`).data('value', isVisible ? 'hide' : 'show');
 
     }
 
 
     function sortDataTable(tableId, columnIndex) {
-        let table = $('#datatable-' + tableId).DataTable();
+        let table = $('#datatable-' + datatableIdElement).DataTable();
         let currentOrder = table.order(); // Ambil urutan saat ini
         let newOrder;
 
@@ -416,7 +781,7 @@
                     success: function(response) {
                         console.log('Data deleted successfully:', response);
 
-                        let table = $(`#datatable-${TABLE_ID}`).DataTable();
+                        let table = $(`#datatable-${datatableIdElement}`).DataTable();
                         let id_code_data = DELETE_ID_CODE_DATA;
 
                         // =============================
@@ -788,6 +1153,7 @@
                                 </div>`;
                     }
                     break;
+
                 case 'DARI-TABEL':
                     const dataTableField_data_source = data_source;
                     let element_option_data_source = '';
@@ -1140,6 +1506,12 @@
     // 🔹 Debug status filter di console
     function showFilterStatus() {
         console.group("🔍 STATUS FILTER");
+        console.log("📂 Tabel ID:", TABLE_ID);
+        console.log("🗂️ Data asli (originalDataSet):", originalDataSet);
+        console.log("🔄 Data terfilter (filteredData):", filteredData);
+        console.log("✅ datasetfilter:", dataSetFilter);
+        console.log("✅ fieldsTableFilterDatatable:", fieldsTableFilterDatatable);
+        console.log("✅ datasetDatatable:", datasetDatatable);
         console.log("🧭 Filter aktif:", activeFilters);
         console.log("🎯 Filter tersedia:", availableFilters);
         console.log("📚 Semua opsi asli:", allFilterOptions);

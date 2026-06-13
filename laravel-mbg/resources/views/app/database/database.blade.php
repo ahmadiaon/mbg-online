@@ -93,7 +93,7 @@
                         <h4 class="text-blue h4">List Data Tabel</h4>
                         <div class="row">
                             <div class="col-12">
-                                <div class="field-show-header ">
+                                <div class="field-show-header field-show-dataDatatable">
 
                                 </div>
                             </div>

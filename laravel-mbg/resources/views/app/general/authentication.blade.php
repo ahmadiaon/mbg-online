@@ -77,7 +77,7 @@
     <script>
         let randNumber = Math.floor(Math.random() * 1000);
         localStorage.setItem('randNumber', randNumber);
-        getReadyDatabase().then(function(db) {
+        getReadyDatabase().then(function(db) { 
             console.log('Database ready:', db);
             // return refreshSession().then(function() {
             //     filterApp = @json(session('FILTER_APP'));

@@ -829,6 +829,9 @@ class DatabaseController extends Controller
             }
             $sheet->setCellValue($abjads[$colIndex] . '1', $field['description_field']);
             $sheet->setCellValue($abjads[$colIndex] . '2', $field['code_table_field']);
+            $sheet->setCellValue($abjads[$colIndex] . '4', $colIndex - 3); // untuk urutan
+            $sheet->setCellValue('A' . $colIndex + 1, $colIndex - 3);
+            $sheet->setCellValue('B' . $colIndex + 1, $field['description_field']);
             $colIndex++;
         }
 
@@ -849,6 +852,9 @@ class DatabaseController extends Controller
                     }
                     $sheet->setCellValue($abjads[$colIndex] . '1', $field['description_field']);
                     $sheet->setCellValue($abjads[$colIndex] . '2', $field['code_table_field']);
+                    $sheet->setCellValue($abjads[$colIndex] . '4', $colIndex - 3); // untuk urutan
+                    $sheet->setCellValue('A' . $colIndex + 1, $colIndex - 3);
+                    $sheet->setCellValue('B' . $colIndex + 1, $field['description_field']);
                     $colIndex++;
                 }
             }
@@ -865,9 +871,10 @@ class DatabaseController extends Controller
         // =============================
         $sheet->setCellValue('A1', 'KETERANGAN DATA');
         $sheet->setCellValue('A2', 'PENGELOMPOKAN DATA');
-        $sheet->setCellValue('A3', 'URUTAN');
-        $sheet->setCellValue('A5', 'NAMA TABEL');
-        $sheet->setCellValue('A6', $data_table['description_table']);
+        $sheet->setCellValue('A4', 'URUTAN');
+        $sheet->setCellValue('B4', 'FIELD NAME');
+        // $sheet->setCellValue('A5', 'NAMA TABEL');
+        // $sheet->setCellValue('A6', $data_table['description_table']);
         $sheet->setCellValue('C1', 'TANGGAL UPDATE');
         $sheet->setCellValue('D1', 'No.');
 

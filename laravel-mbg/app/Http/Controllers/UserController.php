@@ -103,7 +103,7 @@ class UserController extends Controller
             'message' => $message,
             'data' => $data,
             'request' => $request->all(),
-            'session' => $request->session()->all(),
+            // 'session' => $request->session()->all(),
             'auth_token' => $token
         ], 200); // <- selalu 200
     }

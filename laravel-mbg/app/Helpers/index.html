@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>LinkList • MITRA BARITO GROUP</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(145deg, #f4f7fc 0%, #e9eef4 100%);
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            padding: 2rem 1.5rem;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Container utama */
+        .card {
+            max-width: 880px;
+            width: 100%;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(0px);
+            border-radius: 2rem;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 25px 40px -14px rgba(0, 0, 0, 0.25);
+        }
+
+        /* Header section */
+        .header {
+            padding: 2rem 2rem 0.5rem 2rem;
+            border-bottom: 1px solid #eef2f8;
+        }
+
+        .header h1 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #1F2B46, #2c3e66);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: -0.3px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header h1::before {
+            content: "🔗";
+            font-size: 1.9rem;
+            background: none;
+            -webkit-background-clip: unset;
+            color: #2c3e66;
+        }
+
+        .sub {
+            color: #4a627a;
+            margin-top: 0.6rem;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            border-bottom: 1px solid #eef2f8;
+            padding-bottom: 1rem;
+        }
+
+        .badge {
+            background: #eef3fc;
+            padding: 0.25rem 0.75rem;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #1f4973;
+        }
+
+        /* daftar link */
+        .link-list {
+            padding: 1.2rem 2rem 2rem 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        /* item card */
+        .link-item {
+            background: #ffffff;
+            border-radius: 1.25rem;
+            padding: 1rem 1.4rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            transition: all 0.25s ease;
+            border: 1px solid #e2edf7;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+        }
+
+        .link-item:hover {
+            border-color: #cbdde9;
+            background: #fefefe;
+            box-shadow: 0 8px 20px -12px rgba(0, 0, 0, 0.12);
+            transform: translateY(-1px);
+        }
+
+        /* info link (nama + url) */
+        .link-info {
+            flex: 3;
+            min-width: 180px;
+        }
+
+        .link-name {
+            font-weight: 700;
+            font-size: 1.18rem;
+            color: #0a1c2f;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .link-name span {
+            background: #eef2fa;
+            font-size: 0.7rem;
+            font-weight: 500;
+            padding: 0.2rem 0.6rem;
+            border-radius: 30px;
+            color: #2c5a7a;
+        }
+
+        .link-url {
+            font-size: 0.75rem;
+            color: #5f7f9c;
+            margin-top: 0.3rem;
+            word-break: break-all;
+            font-family: 'SF Mono', 'JetBrains Mono', monospace;
+            letter-spacing: -0.2px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .link-url::before {
+            content: "🌐";
+            font-size: 0.7rem;
+            opacity: 0.7;
+        }
+
+        /* tombol aksi */
+        .btn-wrapper {
+            flex-shrink: 0;
+        }
+
+        .btn-link {
+            background: linear-gradient(105deg, #1f5e9e, #163a5e);
+            border: none;
+            padding: 0.65rem 1.6rem;
+            border-radius: 3rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            letter-spacing: 0.3px;
+        }
+
+        .btn-link:hover {
+            background: linear-gradient(105deg, #0f487b, #0f2f4a);
+            transform: scale(1.02);
+            box-shadow: 0 8px 18px -8px rgba(0, 35, 70, 0.3);
+            cursor: pointer;
+        }
+
+        .btn-link:active {
+            transform: scale(0.97);
+            transition: 0.05s;
+        }
+
+        .btn-link:focus-visible {
+            outline: 2px solid #1e6dc7;
+            outline-offset: 2px;
+        }
+
+        /* ikon tombol */
+        .btn-icon {
+            font-size: 1rem;
+            font-weight: 400;
+        }
+
+        /* footer info */
+        .footer-note {
+            background: #f8fafd;
+            padding: 1rem 2rem 1.5rem 2rem;
+            border-top: 1px solid #e9f0f5;
+            font-size: 0.75rem;
+            color: #5d7184;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .footer-note small {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* responsive: mode ponsel */
+        @media (max-width: 620px) {
+            body {
+                padding: 1rem;
+            }
+            .link-list {
+                padding: 1rem 1.2rem 1.8rem 1.2rem;
+            }
+            .header {
+                padding: 1.5rem 1.2rem 0rem 1.2rem;
+            }
+            .link-item {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 1rem;
+            }
+            .btn-wrapper {
+                width: 100%;
+            }
+            .btn-link {
+                width: 100%;
+                justify-content: center;
+                padding: 0.7rem;
+            }
+            .footer-note {
+                padding: 1rem 1.2rem 1.3rem 1.2rem;
+                flex-direction: column;
+                text-align: center;
+            }
+            .link-name {
+                font-size: 1rem;
+            }
+        }
+
+        /* efek smooth */
+        .link-list-empty {
+            text-align: center;
+            padding: 2rem;
+            color: #6c86a0;
+            background: #fafdff;
+            border-radius: 1.5rem;
+        }
+
+        /* animasi subtle */
+        @keyframes fadeSlide {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .link-item {
+            animation: fadeSlide 0.25s ease forwards;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="header">
+        <h1>Link List | MITRA BARITO GROUP</h1>
+        <div class="sub">
+            <span class="badge">✨ Klik tombol & buka tab baru</span>
+        </div>
+    </div>
+
+    <!-- container dinamis untuk list link -->
+    <div id="dynamicLinkList" class="link-list">
+        <!-- list akan di-render oleh javascript -->
+        <div class="link-list-empty">⏳ Memuat daftar link...</div>
+    </div>
+
+    <div class="footer-note">
+        <small>🔍 Setiap tombol membuka halaman terkait di tab baru →</small>
+        <small>⚡ Nama link + URL jelas, klik langsung aksi</small>
+    </div>
+</div>
+
+<script>
+    // ----- DATA LINK (nama dan url) sesuai permintaan: list link + tombol
+    const linksData = [
+       {
+            name: "MJU PR",
+            url: "https://docs.google.com/spreadsheets/d/1z4SigVklGLpZbL8SvAlAIFzJgEgmPkGFP5QIkTgaWZA/edit?usp=sharing",
+            tag: "PR Site MJU"
+        },
+        {
+            name: "YouTube",
+            url: "https://www.youtube.com",
+            tag: "Video"
+        },
+        {
+            name: "GitHub",
+            url: "https://github.com",
+            tag: "Developer"
+        },
+        {
+            name: "Wikipedia",
+            url: "https://www.wikipedia.org",
+            tag: "Ensiklopedia"
+        },
+        {
+            name: "Reddit",
+            url: "https://www.reddit.com",
+            tag: "Forum"
+        },
+        {
+            name: "Twitter (X)",
+            url: "https://twitter.com",
+            tag: "Sosial"
+        },
+        {
+            name: "Medium",
+            url: "https://medium.com",
+            tag: "Blog"
+        },
+        {
+            name: "Spotify",
+            url: "https://www.spotify.com",
+            tag: "Musik"
+        }
+    ];
+
+    // fungsi untuk merender daftar link + tombol
+    function renderLinkList() {
+        const container = document.getElementById('dynamicLinkList');
+        if (!container) return;
+
+        // jika data kosong (tidak mungkin, tapi jaga2)
+        if (!linksData || linksData.length === 0) {
+            container.innerHTML = `<div class="link-list-empty">📭 Belum ada link tersedia. Tambahkan data link.</div>`;
+            return;
+        }
+
+        // mapping setiap item ke html element
+        let itemsHtml = '';
+        for (let i = 0; i < linksData.length; i++) {
+            const link = linksData[i];
+            // sanitasi aman untuk nama dan url karena berasal dari hardcode internal
+            const safeName = escapeHtml(link.name);
+            const safeUrl = escapeHtml(link.url);
+            const safeTag = link.tag ? escapeHtml(link.tag) : 'Link';
+            
+            itemsHtml += `
+                <div class="link-item" data-id="${i}">
+                    <div class="link-info">
+                        <div class="link-name">
+                            ${safeName}
+                            <span>${safeTag}</span>
+                        </div>
+                        <div class="link-url" title="${safeUrl}">${safeUrl}</div>
+                    </div>
+                    <div class="btn-wrapper">
+                        <button class="btn-link" data-url="${safeUrl}" data-name="${safeName}">
+                            <span class="btn-icon">🔘</span> Buka Link
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // masukkan ke container
+        container.innerHTML = itemsHtml;
+        
+        // setelah render, pasang event listener untuk setiap tombol (agar klik membuka url)
+        attachButtonEvents();
+    }
+    
+    // fungsi kecil untuk mencegah XSS (walaupun data statis, best practice)
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+    
+    // pasang event klik pada semua tombol .btn-link di dalam list
+    function attachButtonEvents() {
+        const buttons = document.querySelectorAll('#dynamicLinkList .btn-link');
+        buttons.forEach(button => {
+            // hapus listener lama jika ada untuk mencegah duplikasi (namun karena render ulang total, aman)
+            // kita cukup pasang listener baru
+            button.removeEventListener('click', handleButtonClick);
+            button.addEventListener('click', handleButtonClick);
+        });
+    }
+    
+    // handler untuk membuka link di tab baru
+    function handleButtonClick(event) {
+        // pastikan tombol yang diklik
+        const btn = event.currentTarget;
+        // ambil url dari atribut data-url
+        let url = btn.getAttribute('data-url');
+        const linkName = btn.getAttribute('data-name') || 'tautan';
+        
+        if (!url) {
+            console.warn('URL tidak ditemukan pada tombol');
+            return;
+        }
+        
+        // Validasi sederhana: pastikan url memiliki protokol http/https, jika tidak ada tambahkan https
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+            // jika hanya "www.example.com" atau "example.com"
+            if (url.includes('.')) {
+                url = 'https://' + url;
+            } else {
+                // fallback
+                url = 'https://' + url;
+            }
+        }
+        
+        // Buka link di tab baru (tanpa popup blocker karena interaksi user)
+        try {
+            window.open(url, '_blank', 'noopener,noreferrer');
+            // feedback visual ringan (opsional) - tidak mengganggu UX
+            btn.style.transform = 'scale(0.97)';
+            setTimeout(() => {
+                if (btn) btn.style.transform = '';
+            }, 120);
+        } catch (err) {
+            console.error('Gagal membuka link:', err);
+            // alternatif: memberi notifikasi sederhana
+            alert(`Tidak dapat membuka link: ${linkName}\nPastikan URL valid: ${url}`);
+        }
+    }
+    
+    // inisialisasi render ketika DOM sudah siap
+    document.addEventListener('DOMContentLoaded', () => {
+        renderLinkList();
+        
+        // tambahan sentuhan: efek hover tooltip? sudah via title, dan tombol responsif
+        // menambahkan pesan aksesibilitas dinamis untuk total link
+        const container = document.getElementById('dynamicLinkList');
+        if (container && linksData.length) {
+            const observer = new MutationObserver(() => {
+                // hanya untuk keperluan logging, tidak wajib
+                const totalLinks = document.querySelectorAll('#dynamicLinkList .link-item').length;
+                // update atribut aria live (opsional)
+                const footerNote = document.querySelector('.footer-note small:first-child');
+                if (footerNote && !footerNote.hasAttribute('data-counted')) {
+                    // tambahan sentuhan elegan
+                }
+            });
+            observer.observe(container, { childList: true, subtree: false });
+        }
+    });
+    
+    // tambahan: jika terjadi error window open safety karena kebijakan popup
+    // tapi user-initiated event sudah aman. tetap siap.
+    window.addEventListener('load', () => {
+        // menambahkan class pada body untuk show bahwa render telah selesai
+        document.body.style.opacity = '1';
+    });
+</script>
+</body>
+</html>

@@ -34,10 +34,58 @@
         $('.loading-content').hide();
     }
 
-    async function refreshSession() {
+    function deepMerge(obj1, obj2) {
+        const result = {
+            ...obj1
+        };
+
+        for (const key in obj2) {
+            if (
+                typeof obj2[key] === 'object' &&
+                obj2[key] !== null &&
+                !Array.isArray(obj2[key])
+            ) {
+                result[key] = deepMerge(obj1[key] ?? {}, obj2[key]);
+            } else {
+                result[key] = obj2[key];
+            }
+        }
+
+        return result;
+    }
+
+
+    function refreshSession() {
         console.log('SESSION START');
         console.log('======================================================================================');
         $('.refresh-data').show();
+        const now = new Date();
+
+        // helper biar selalu 2 digit
+        const pad = n => String(n).padStart(2, '0');
+
+        // tanggal
+        const day = pad(now.getDate());
+        const month = pad(now.getMonth() + 1); // month dimulai dari 0
+        const year = String(now.getFullYear());
+
+        // date_start = awal bulan
+        const date_start = `${year}-${month}-01`;
+
+        // date_end = akhir bulan
+        const lastDayOfMonth = new Date(year, now.getMonth() + 1, 0).getDate();
+        const date_end = `${year}-${month}-${pad(lastDayOfMonth)}`;
+
+        const default_filter_date = {
+            date_start,
+            date_end,
+            day,
+            month,
+            year,
+            from: null
+        };
+
+
 
         let auth = localStorage.getItem('auth_token');
         // return penting agar bisa di-await atau di-then
@@ -57,9 +105,241 @@
                 success: function(response) {
                     status_absen_short = '';
                     console.log('response refreshSession code r-1', response);
-                    setDatabase('DATABASE', response.data);
+
 
                     db = response.data;
+
+                    // const fields = [
+                    //     'NRP',
+                    //     'NAMA-KARYAWAN',
+                    //     'JABATAN',
+                    //     'PROJECT',
+                    //     'DEPARTEMEN',
+                    //     'DIVISI',
+                    //     'PERUSAHAAN'
+                    // ];
+
+                    // const result = {};
+
+                    // Object.values(db['database_tables']['KARYAWAN']['join_data'])
+                    //     .forEach(data => {
+                    //         let row = {};
+
+                    //         fields.forEach(f => {
+                    //             row[f] = data[f]?.text_data ?? null;
+                    //         });
+
+                    //         // 🔑 NRP jadi key utama
+                    //         result[row.NRP] = row;
+                    //     });
+
+                    // console.log('result DB');
+                    // console.log(result);
+
+
+                    const fields = [
+                        'NRP',
+                        'NAMA-KARYAWAN',
+                        'JABATAN',
+                        'PROJECT',
+                        'DEPARTEMEN',
+                        'DIVISI',
+                        'PERUSAHAAN',
+                        'STATUS',
+                    ];
+
+                    let public_karyawan = {
+                        ...db['database_tables']['KARYAWAN']
+                    };
+
+                    const result = {};
+
+                    Object.values(db['database_tables']['KARYAWAN']['join_data'])
+                        .forEach(data => {
+                            let row = {};
+
+                            fields.forEach(f => {
+                                row[f] = data[f] ??
+                                    null; // ⬅️ ambil OBJECT, bukan text_data
+                            });
+
+                            // jadikan NRP.code_data sebagai key utama
+                            const nrpKey = row.NRP?.code_data;
+
+                            if (!nrpKey) return;
+
+                            result[nrpKey] = row;
+                        });
+
+                    db['database_tables']['KARYAWAN']['public_data'] = result;
+
+
+                    const result_deep_merge = {};
+
+                    Object.keys(result).forEach(nrp => {
+                        result_deep_merge[nrp] = deepMerge(
+                            result[nrp],
+                            db['database_tables']['STATUS-KERJA-KARYAWAN']['data'][
+                                nrp
+                            ] ?? {} // ⬅️ override jika ada
+                        );
+                    });
+
+                    console.log('result_deep_merge');
+                    console.log(result_deep_merge);
+
+                    let db_jabatan = db['database_tables']['JABATAN']['data'];
+                    let new_table_karyawan_public = {
+                        "code_table": "PUBLIC-KARYAWAN",
+                        "parent_table": null,
+                        "primary_table": "NRP",
+                        "menu_table": "DATABASE",
+                        "description_table": "Filter Karyawan",
+                    }
+
+                    new_table_karyawan_public['data'] = result_deep_merge;
+
+
+
+                    db['FILTER_APP']['DEFAULT_FILTER']['date_end'] = date_end;
+                    db['FILTER_APP']['DEFAULT_FILTER']['date_start'] = date_start;
+                    db['FILTER_APP']['DEFAULT_FILTER']['day'] = day;
+                    db['FILTER_APP']['DEFAULT_FILTER']['month'] = month;
+                    db['FILTER_APP']['DEFAULT_FILTER']['year'] = year;
+
+
+                    if (!localStorage.getItem('FILTER_APP')) {
+                        db['FILTER_APP']['ON_FILTER'] = db['FILTER_APP']['DEFAULT_FILTER'];
+                    } else {
+                        let def_filter = JSON.parse(localStorage.getItem(key));
+
+                        db['FILTER_APP']['DEFAULT_FILTER'] = def_filter['FILTER_APP'][
+                            'DEFAULT_FILTER'
+                        ];
+                    }
+                    let fields_obj = {};
+                    const fields_ONE = [{
+                            'table': 'KARYAWAN',
+                            'field': 'NRP'
+                        },
+                        {
+                            'table': 'IDENTITAS-KARYAWAN',
+                            'field': 'NAMA-KARYAWAN'
+                        },
+                        {
+                            'table': 'STATUS-KERJA-KARYAWAN',
+                            'field': 'JABATAN'
+                        },
+                        {
+                            'table': 'STATUS-KERJA-KARYAWAN',
+                            'field': 'PROJECT'
+                        },
+                        {
+                            'table': 'STATUS-KERJA-KARYAWAN',
+                            'field': 'DEPARTEMEN'
+                        },
+                        {
+                            'table': 'STATUS-KERJA-KARYAWAN',
+                            'field': 'DIVISI'
+                        },
+                        {
+                            'table': 'STATUS-KERJA-KARYAWAN',
+                            'field': 'PERUSAHAAN'
+                        },
+                        {
+                            'table': 'STATUS-KERJA-KARYAWAN',
+                            'field': 'STATUS'
+                        },
+                    ];
+                    fields_ONE.forEach(field => {
+                        fields_obj[field.field] = db['database_tables'][field.table][
+                            'fields'
+                        ][
+                            field.field
+                        ];
+
+                        // db['database_tables']?.['STATUS-KERJA-KARYAWAN']['fields'][
+                        //     field] ?? db['database_tables']['KARYAWAN']['join_fields'][
+                        //     field
+                        // ]
+                    });
+                    new_table_karyawan_public['fields'] = fields_obj;
+                    db['database_tables']['PUBLIC-KARYAWAN'] = new_table_karyawan_public;
+                    let data_filter_karyawan = {};
+                    Object.entries(db['database_tables']['KARYAWAN']['join_data']).forEach(([
+                        key, value
+                    ]) => {
+                        const p = value['PERUSAHAAN']['value_data'];
+                        const pr = value['PROJECT']['value_data'];
+                        const dpt = value['DEPARTEMEN']['value_data'];
+                        const dvs = value['DIVISI']['value_data'];
+                        const sh = value['DIVISI']['value_data']; // kalau ada shift
+
+                        if (!data_filter_karyawan[p]) data_filter_karyawan[p] = {};
+                        if (!data_filter_karyawan[p][pr]) data_filter_karyawan[p][
+                            pr
+                        ] = {};
+                        if (!data_filter_karyawan[p][pr][dpt]) data_filter_karyawan[p][
+                            pr
+                        ][dpt] = {};
+                        if (!data_filter_karyawan[p][pr][dpt][dvs])
+                            data_filter_karyawan[p][pr][dpt][dvs] = {};
+                        if (!data_filter_karyawan[p][pr][dpt][dvs][sh])
+                            data_filter_karyawan[p][pr][dpt][dvs][sh] = [];
+
+                        // simpan karyawan (pakai key atau value)
+                        data_filter_karyawan[p][pr][dpt][dvs][sh].push(
+                            value['NRP']['code_data']
+                        );
+                    });
+
+
+                    Object.entries(db['database_tables']['KARYAWAN']['join_data']).forEach(([key,
+                        value
+                    ]) => {
+                        const jbt = value['JABATAN']['value_data'];
+                        const g = db_jabatan[jbt]?.['GRADE']['value_data'] ||
+                            '1'; // grade karyawan
+                        const p = value['PERUSAHAAN']['value_data'];
+                        const pr = value['PROJECT']['value_data'];
+                        const dpt = value['DEPARTEMEN']['value_data'];
+                        const dvs = value['DIVISI']['value_data'];
+
+                        const sh = value['SHIFT'] ?
+                            value['SHIFT']['value_data'] :
+                            value['DIVISI']['value_data']; // fallback kalau belum ada shift
+
+                        if (!data_filter_karyawan[g]) data_filter_karyawan[g] = {};
+                        if (!data_filter_karyawan[g][p]) data_filter_karyawan[g][p] = {};
+                        if (!data_filter_karyawan[g][p][pr]) data_filter_karyawan[g][p][
+                            pr
+                        ] = {};
+                        if (!data_filter_karyawan[g][p][pr][dpt]) data_filter_karyawan[g][p]
+                            [pr][dpt] = {};
+                        if (!data_filter_karyawan[g][p][pr][dpt][dvs]) data_filter_karyawan[
+                            g][p][pr][dpt][dvs] = {};
+                        if (!data_filter_karyawan[g][p][pr][dpt][dvs][sh])
+                            data_filter_karyawan[g][p][pr][dpt][dvs][sh] = [];
+
+                        data_filter_karyawan[g][p][pr][dpt][dvs][sh].push(
+                            value['NRP']['code_data']
+                        );
+                    });
+                    console.log('data_filter_karyawan', data_filter_karyawan);
+                    let data_karyawan = {
+                        role: db['FILTER_APP']['USER']['role'],
+                        PERUSAHAAN: db['FILTER_APP']['PROFILE']['PERUSAHAAN']['value_data'],
+                        PROJECT: db['FILTER_APP']['PROFILE']['PROJECT']['value_data'],
+                        DEPARTEMEN: db['FILTER_APP']['PROFILE']['DEPARTEMEN']['value_data'],
+                        DIVISI: db['FILTER_APP']['PROFILE']['DIVISI']['value_data'],
+                        SHIFT: db['FILTER_APP']['PROFILE']['DIVISI']['value_data']
+                    };
+                    console.log('data_karyawan', data_karyawan);
+                    console.log('filtered', getAksesKaryawan(data_filter_karyawan, data_karyawan));
+
+                    localStorage.setItem('FILTER-APP', JSON.stringify(db['FILTER_APP']['ON_FILTER']));
+
+                    setDatabase('DATABASE', db);
                     $('.refresh-data').hide();
                     // return false;
                     resolve(response); // 👈 tambahkan ini
@@ -72,6 +352,75 @@
                 }
             });
         });
+    }
+
+
+    function getAksesKaryawan(data, user) {
+        let {
+            role,
+            PERUSAHAAN: p,
+            PROJECT: pr,
+            DEPARTEMEN: dpt,
+            DIVISI: dvs,
+            SHIFT: sh
+        } = user;
+        role = 2;
+        role = parseInt(role);
+
+        console.log('getAksesKaryawan role:', role);
+
+        // role 2 → shift sendiri
+        if (role === 2) {
+            return data?.[role]?.[p]?.[pr]?.[dpt]?.[dvs]?.[sh] || [];
+        }
+
+        // role 3 → semua shift di divisi
+        if (role === 3) {
+            return Object.values(data?.[role]?.[p]?.[pr]?.[dpt]?.[dvs] || {})
+                .flat();
+        }
+
+        // role 4-5 → semua divisi di departemen
+        if ([4, 5].includes(role)) {
+            return Object.values(data?.[role]?.[p]?.[pr]?.[dpt] || {})
+                .map(obj => Object.values(obj).flat())
+                .flat();
+        }
+
+        // role 6-7 → semua departemen di project
+        if ([6, 7].includes(role)) {
+            return Object.values(data?.[role]?.[p]?.[pr] || {})
+                .map(dep => Object.values(dep)
+                    .map(div => Object.values(div).flat())
+                    .flat()
+                ).flat();
+        }
+
+        // role 8-9 → semua project di perusahaan
+        if ([8, 9].includes(role)) {
+            return Object.values(data?.[role]?.[p] || {})
+                .map(proj => Object.values(proj)
+                    .map(dep => Object.values(dep)
+                        .map(div => Object.values(div).flat())
+                        .flat()
+                    ).flat()
+                ).flat();
+        }
+
+        // role 10-11 → semua perusahaan
+        if ([10, 11].includes(role)) {
+            return Object.values(data)
+                .map(comp => Object.values(comp)
+                    .map(proj => Object.values(proj)
+                        .map(dep => Object.values(dep)
+                            .map(div => Object.values(div).flat())
+                            .flat()
+                        ).flat()
+                    ).flat()
+                ).flat();
+        }
+
+        return [];
     }
 
 
@@ -139,6 +488,7 @@
     }
 
     function setDatabase(key, value) {
+        console.log('new db' + key, value);
         return new Promise((resolve, reject) => {
             if (!indexedDBInstance) {
                 reject('IndexedDB not initialized');
@@ -259,7 +609,7 @@
                     console.error('Transaction error:', event);
                     reject(event.target.error || new Error('IndexedDB transaction failed'));
                 };
-                console.log('getDatabase selesai', indexedDBInstance);
+                // console.log('getDatabase selesai', indexedDBInstance);
             } catch (err) {
                 reject(err);
             }

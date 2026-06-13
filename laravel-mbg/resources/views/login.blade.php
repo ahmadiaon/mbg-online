@@ -221,4 +221,9 @@
     </script>
 </body>
 
+{{-- 
+    ## Catatan untuk Developer:
+       - data yang diperlukan untuk login sudah ada di response JSON (res.data) → cek di console.log(res)
+--}}
+
 </html>

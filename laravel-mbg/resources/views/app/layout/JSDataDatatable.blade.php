@@ -492,36 +492,36 @@
 
     }
 
-    function toggleColumnAuto(tableId, columnIndex) {
-        const table = $('#' + tableId).DataTable(); // ambil instance aktif
+    // function toggleColumnAuto(tableId, columnIndex) {
+    //     const table = $('#' + tableId).DataTable(); // ambil instance aktif
 
-        // Ambil status saat ini
-        const isVisible = DATA_fieldsTableFilterDatatable[columnIndex]['visibility_data_field'] == 'show' ? true :
-            false;
-        if (DATA_fieldsTableFilterDatatable[columnIndex]['visibility_data_field'] == 'show' ||
-            DATA_fieldsTableFilterDatatable[columnIndex]['visibility_data_field'] == 'hide') {
-            DATA_fieldsTableFilterDatatable[columnIndex]['visibility_data_field'] = isVisible ? 'hide' : 'show';
-        }
+    //     // Ambil status saat ini
+    //     const isVisible = DATA_fieldsTableFilterDatatable[columnIndex]['visibility_data_field'] == 'show' ? true :
+    //         false;
+    //     if (DATA_fieldsTableFilterDatatable[columnIndex]['visibility_data_field'] == 'show' ||
+    //         DATA_fieldsTableFilterDatatable[columnIndex]['visibility_data_field'] == 'hide') {
+    //         DATA_fieldsTableFilterDatatable[columnIndex]['visibility_data_field'] = isVisible ? 'hide' : 'show';
+    //     }
 
 
-        conLog('isVisible', tableId)
-        // table.column(columnIndex).visible();
+    //     conLog('isVisible', tableId)
+    //     // table.column(columnIndex).visible();
 
-        // Toggle tampil / sembunyi
-        table.column(columnIndex).visible(!isVisible);
+    //     // Toggle tampil / sembunyi
+    //     table.column(columnIndex).visible(!isVisible);
 
-        // Ubah ikon bila ada
-        const icon = document.getElementById(`toggle-column-${DATA_TABLE_ID}-${columnIndex}`);
-        if (icon) {
-            icon.className = isVisible ? 'show-field bi bi-eye-slash' : 'show-field bi bi-eye';
-        }
+    //     // Ubah ikon bila ada
+    //     const icon = document.getElementById(`toggle-column-${DATA_TABLE_ID}-${columnIndex}`);
+    //     if (icon) {
+    //         icon.className = isVisible ? 'show-field bi bi-eye-slash' : 'show-field bi bi-eye';
+    //     }
 
-        console.log(
-            `Kolom ke-${columnIndex} pada #datatable-${tableId} sekarang ${
-            !isVisible ? 'tampil ✅' : 'disembunyikan ❌'
-        }`
-        );
-    }
+    //     console.log(
+    //         `Kolom ke-${columnIndex} pada #datatable-${tableId} sekarang ${
+    //         !isVisible ? 'tampil ✅' : 'disembunyikan ❌'
+    //     }`
+    //     );
+    // }
 
     function toggleShowField() {
         isShowAllField = !isShowAllField;

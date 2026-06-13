@@ -1,10 +1,13 @@
 <?php
 
+use App\Http\Controllers\AbsensiController;
 use App\Http\Controllers\DatabaseController;
 use App\Http\Controllers\DatabaseDataController;
 use App\Http\Controllers\GeneralRouteController;
+use App\Http\Controllers\PermintaanController;
 use App\Http\Controllers\PersonalController;
 use App\Http\Controllers\RecruitmentController;
+use App\Http\Controllers\ShiftKaryawanController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
@@ -28,6 +31,20 @@ Route::get('/slip/{filename}', function ($filename) {
         'Accept-Ranges' => 'bytes',
     ]);
 });
+
+Route::prefix('web')->group(function () {
+    Route::fallback(function () {
+        return redirect('/app');
+    });
+});
+
+Route::prefix('WEB')->group(function () {
+    Route::fallback(function () {
+        return redirect('/app');
+    });
+});
+
+
 
 Route::get('/file/{folder}/{filename}', [DatabaseController::class, 'showPdf']);
 
@@ -54,17 +71,10 @@ Route::middleware(['auth.login'])->group(function () {
 
     // SINGLE ROUTE
     Route::get('/profile', [PersonalController::class, 'Profile']);
-
     Route::get('/my-slip', [GeneralRouteController::class, 'mySlip']);
     Route::get('/app', [PersonalController::class, 'Menu']);
     Route::get('/', [PersonalController::class, 'Menu']);
     Route::get('/user', [PersonalController::class, 'User']);
-
-
-    // Route::get('/slip/{filename}', [DatabaseController::class, 'showSlip'])
-    //     ->where('filename', '.*');
-
-
 
     Route::prefix('/payroll')->group(function () {
         Route::get('/slip', [GeneralRouteController::class, 'managePayrollSlip']);
@@ -73,6 +83,18 @@ Route::middleware(['auth.login'])->group(function () {
 
     Route::prefix('/manage')->group(function () {
         Route::get('/recruitment', [GeneralRouteController::class, 'manageRecruitment']);
+        Route::prefix('/absensi')->group(function () {
+            Route::get('/', [AbsensiController::class, 'manageabsensi']);
+            Route::post('/getDataAbsensi', [AbsensiController::class, 'getDataAbsensi']);
+            Route::post('/import-absensi', [AbsensiController::class, 'importAbsensi']);
+        });
+        Route::prefix('/shift')->group(function () {
+            Route::get('/', [ShiftKaryawanController::class, 'manageShift']);
+            Route::post('/getDataShift', [ShiftKaryawanController::class, 'getDataShift']);
+            Route::post('/import-shift', [ShiftKaryawanController::class, 'importShift']);
+        });
+
+
         Route::post('/slip', [DatabaseController::class, 'slipStore']);
     });
 
@@ -100,7 +122,28 @@ Route::middleware(['auth.login'])->group(function () {
             return view('app.database.menu.index');
         });
     });
+
+    Route::prefix('/logistik')->group(function () {
+        Route::prefix('/permintaan')->group(function () {
+            // Halaman utama permintaan
+            Route::get('/permintaan', [PermintaanController::class, 'indexPermintaan']);
+            Route::get('/pengadaan', [PermintaanController::class, 'indexPengadaan']);
+
+            // Import/Export datatable
+            Route::post('/import-datatable', [PermintaanController::class, 'importDatatable']);
+            Route::post('/export-datatable', [PermintaanController::class, 'exportDatatable']);
+        });
+    });
+
+
+    Route::prefix('/me')->group(function () {
+        Route::prefix('/kehadiran')->group(function () {
+            Route::get('/absensi', [AbsensiController::class, 'meAbsensi']);
+        });
+    });
 });
+
+
 
 Route::prefix('/database')->group(function () {
     Route::post('/refresh-session', [DatabaseDataController::class, 'refreshSession']);

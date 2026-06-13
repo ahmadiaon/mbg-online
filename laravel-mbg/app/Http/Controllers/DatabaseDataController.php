@@ -2201,6 +2201,14 @@ class DatabaseDataController extends Controller
 
         // ========================================================
 
+
+
+        $Q_data_source = UserTemplate::get();
+        $dataUserTemplate = [];
+        foreach ($Q_data_source as $data_user_template) {
+            $dataUserTemplate[$data_user_template->employee_uuid][$data_user_template->code_table_get][$data_user_template->code_field] = $data_user_template;
+        }
+
         // ====== MANIPULATION DATA ===================
 
         foreach ($dataDatabaseFieldShow as $key_table => $gabungan_fields) {
@@ -2238,6 +2246,7 @@ class DatabaseDataController extends Controller
         $FILTER_APP['USER'] = $users;
 
         $default_database = [
+            'database_user_template' => $dataUserTemplate,
             'database_tables' => $data_table_new,
             'data_group_forms' => $data_group_forms,
             'database_tables_child' => $data_table_child,

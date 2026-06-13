@@ -27,7 +27,7 @@
 
         .org-chart {
             position: relative;
-            display: flex;
+            display: flex;  
             flex-direction: column;
             gap: var(--node-gap-vertical);
             padding: 24px;
@@ -46,7 +46,7 @@
             background: var(--node-bg);
             border: 2px solid var(--node-border);
             border-radius: 8px;
-            padding: 10px 14px;
+            padding: 1px 1px;
             min-height: var(--node-min-height);
             box-sizing: border-box;
             text-align: center;
@@ -64,8 +64,8 @@
         }
 
         .org-node .photo {
-            width: 60px;
-            height: 60px;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
             object-fit: cover;
             margin: 0 auto 8px auto;
@@ -73,18 +73,20 @@
         }
 
         .org-node .title {
+            font-size: 8px;
             font-weight: 600;
             color: #0f172a;
         }
 
         .org-node .meta {
-            font-size: 12px;
+            font-size: 8px;
             color: #475569;
-            margin-top: 6px;
+            margin-top: 0px;
         }
 
         .org-node .person {
-            margin-top: 8px;
+            margin-top: 0px;
+            font-size: 8px;
             font-weight: 500;
             color: #1e40af;
         }
@@ -97,9 +99,9 @@
             color: white;
             border: none;
             border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            font-size: 12px;
+            width: 15px;
+            height: 15px;
+            font-size: 8px;
             line-height: 18px;
             cursor: pointer;
             padding: 0;

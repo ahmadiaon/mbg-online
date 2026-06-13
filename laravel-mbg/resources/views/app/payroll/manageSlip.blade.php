@@ -23,6 +23,7 @@
                         </tbody>
                     </table>
                 </div>
+                
 
             </div>
         </div>
@@ -59,7 +60,7 @@
             let templateDataTable = {
                 code_table: "slip",
                 parent_table: null,
-                primary_table: "nrp",
+                primary_table: "code_file",
                 menu_table: "STAND-ALONE",
                 description_table: "Slip Payroll",
                 fields: {
