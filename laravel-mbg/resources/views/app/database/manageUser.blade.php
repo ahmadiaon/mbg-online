@@ -121,90 +121,97 @@
 
 @section('js_code')
     <script>
-        readyDB(function(db) {
-
-            // DATA TABLE
-
-
-
-            let templateDataTable = {
-                code_table: "users",
-                parent_table: null,
-                primary_table: "nrp",
-                menu_table: "STAND-ALONE",
-                description_table: "Users Account",
-                fields: {
-                    'nrp': {
-                        sort_field: '0',
-                        code_field: 'nrp',
-                        description_field: 'NRP',
-                        visibility_data_field: 'show',
-                        data_source: {
-                            "field_get_data_source": "NRP",
-                            "code_data_source": "PERUSAHAAN-DIREKTUR",
-                            "table_data_source": "KARYAWAN"
-                        },
-                        type_data_field: 'DARI-TABEL',
+        // DATA TABLE
+        let templateDataTable = {
+            code_table: "users",
+            parent_table: null,
+            primary_table: "nrp",
+            menu_table: "STAND-ALONE",
+            description_table: "Users Account",
+            fields: {
+                'nrp': {
+                    sort_field: '0',
+                    code_field: 'nrp',
+                    description_field: 'NRP',
+                    visibility_data_field: 'show',
+                    data_source: {
+                        "field_get_data_source": "NRP",
+                        "code_data_source": "PERUSAHAAN-DIREKTUR",
+                        "table_data_source": "KARYAWAN"
                     },
-                    'role': {
-                        sort_field: '1',
-                        code_field: 'role',
-                        description_field: 'Role',
-                        visibility_data_field: 'show',
-                        type_data_field: 'TEXT',
-                    },
-                    'auth_login': {
-                        sort_field: '2',
-                        code_field: 'auth_login',
-                        description_field: 'Auth Login',
-                        visibility_data_field: 'filter',
-                        type_data_field: 'TEXT',
-                    },
-                    'pin': {
-                        sort_field: '5',
-                        code_field: 'pin',
-                        description_field: 'PIN',
-                        visibility_data_field: 'show',
-                        type_data_field: 'TEXT',
-                    },
-                    'password': {
-                        sort_field: '4',
-                        code_field: 'password',
-                        description_field: 'Password',
-                        visibility_data_field: 'block',
-                        type_data_field: 'TEXT',
-                    }
+                    type_data_field: 'DARI-TABEL',
+                },
+                'role': {
+                    sort_field: '1',
+                    code_field: 'role',
+                    description_field: 'Role',
+                    visibility_data_field: 'show',
+                    type_data_field: 'TEXT',
+                },
+                'auth_login': {
+                    sort_field: '2',
+                    code_field: 'auth_login',
+                    description_field: 'Auth Login',
+                    visibility_data_field: 'filter',
+                    type_data_field: 'TEXT',
+                },
+                'pin': {
+                    sort_field: '5',
+                    code_field: 'pin',
+                    description_field: 'PIN',
+                    visibility_data_field: 'show',
+                    type_data_field: 'TEXT',
+                },
+                'password': {
+                    sort_field: '4',
+                    code_field: 'password',
+                    description_field: 'Password',
+                    visibility_data_field: 'block',
+                    type_data_field: 'TEXT',
                 }
             }
+        }
 
-            GROUP_DATA = 'database_tables';
-            $.ajax({
-                url: '/api/database/menu/getdatadatatable',
-                type: "POST",
-                data: {
-                    table_name: 'users'
-                },
-                success: function(response) {
-                    // let dataDatatable = response.data;
-                    templateDataTable['data'] = response.data;
-                    let arrParameter = {
-                        tableId: 'users',
-                        tableDataDetails: templateDataTable,
-                        datasetTable: null,
-                        paggingDatatable: true,
-                        staticName: null,
-                        isDeleteAction: false
-                    };
-                    initDataTable(arrParameter);
-                },
-                error: function(response) {
-                    console.log(response);
+        GROUP_DATA = 'database_tables';
+
+        let arrParameter = {}
+
+
+        const masterData = new MasterData();
+
+        (async function() {
+            try {
+                const result = await CacheManager.getCache('db_role_4', null, null);
+                console.log('Cache retrieved:', result);
+
+                // Pastikan cache memiliki data yang valid
+                if (!result?.data?.cached) {
+                    console.error('Cache kosong atau tidak valid');
+                    return; // hentikan eksekusi
                 }
-            });
+
+                // Perbarui variabel global db
+                db = result.data.cached;
+                const data_return = await masterData.getDatadataTable('users', null, null);
+                conLog('data return', data_return);
+                templateDataTable['data'] = data_return;
+                arrParameter.tableDataDetails = templateDataTable;
+                arrParameter = {
+                    tableId: 'users',
+                    tableDataDetails: templateDataTable,
+                    datasetTable: null,
+                    paggingDatatable: true,
+                    staticName: null,
+                    isDeleteAction: false
+                };
+                initDataTable(arrParameter);
+            } catch (error) {
+                console.error('Gagal mengambil data:', error);
+            }
+        })();
 
 
 
-        });
 
 
         function dataShow(tableId, code_data) {

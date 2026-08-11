@@ -1,79 +1,69 @@
 @extends('app.layout.main')
 
 @section('content')
-    <div class="row">
-        <div class="col-md-8 col-sm-12 mb-20">
-            <div class="card-box pb-10">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <!-- Judul -->
+                <div class="text-center mb-4">
+                    <i class="bi bi-file-earmark-pdf text-danger display-4"></i>
+                    <h3 class="fw-bold mt-2">Slip Gaji Karyawan</h3>
+                    <p class="text-muted">Pilih periode untuk melihat slip</p>
+                </div>
 
-                <div class="row pd-20">
-                    <div class="col-auto">
-                        <h4 class="text-blue h4">SLIP</h4>
+                <!-- Pilihan Tahun -->
+                <div class="card shadow-sm rounded-4 mb-3 border-0">
+                    <div class="card-body text-center">
+                        <label class="form-label fw-bold mb-2">
+                            <i class="bi bi-calendar-year me-1"></i>Pilih Tahun
+                        </label> <br>
+                        <div class="btn-group flex-wrap gap-1" role="group" id="yearGroup"></div>
                     </div>
                 </div>
 
-                <div class="mb-20" id="datatable-slips-wrapper">
-                    <table id="datatable-slips" class="display cell-border" style="width:100%">
-                        <thead>
-                            <tr id="header_table">
-                                <th>Field Data</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-
-                        </tbody>
-                    </table>
+                <!-- Pilihan Bulan -->
+                <div class="card shadow-sm rounded-4 mb-4 border-0">
+                    <div class="card-body text-center">
+                        <label class="form-label fw-bold mb-2">
+                            <i class="bi bi-calendar-month me-1"></i>Pilih Bulan
+                        </label>
+                        <div class="btn-group flex-wrap gap-1" role="group" id="monthGroup"></div>
+                    </div>
                 </div>
 
-            </div>
-        </div>
-        <div class="col-md-4 col-sm-12" id="section-preview-slip">
-            <div class="card-box">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Preview Slip</h5>
-                    <button id="btn-download" type="button" class="btn btn-primary btn-sm" onclick="downloadSlip()">
-                        Download
+                <!-- Tombol Lihat Slip -->
+                <div class="d-grid mb-4">
+                    <button class="btn btn-primary btn-lg rounded-pill" id="btnViewSlip">
+                        <i class="bi bi-search me-2"></i>Lihat Slip
                     </button>
                 </div>
-                <div id="slip-preview"
-                    style="
-                        width:100%;
-                        min-height:400px;
-                        border:1px solid #ddd;
-                        display:flex;
-                        align-items:center;
-                        justify-content:center;
-                        background:#fafafa;
-                    ">
-                    <span class="text-muted">Belum ada slip dipilih</span>
+
+                <!-- Area Preview Gambar (hasil render PDF) -->
+                <div id="slipResult" class="card shadow-sm rounded-4 border-0 d-none">
+                    <div
+                        class="card-header bg-white d-flex justify-content-between align-items-center border-0 rounded-top-4">
+                        <span class="fw-bold"><i class="bi bi-file-earmark-image text-danger me-1"></i>Slip Gaji</span>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-secondary" id="btnZoomIn" title="Perbesar"><i
+                                    class="bi bi-zoom-in"></i></button>
+                            <button class="btn btn-outline-secondary" id="btnZoomOut" title="Perkecil"><i
+                                    class="bi bi-zoom-out"></i></button>
+                            <button class="btn btn-outline-secondary" id="btnFitWidth" title="Sesuaikan Lebar"><i
+                                    class="bi bi-arrows-fullscreen"></i></button>
+                            <button class="btn btn-outline-secondary" id="btnDownload" title="Unduh Slip"><i
+                                    class="bi bi-download"></i></button>
+                        </div>
+                    </div>
+                    <div class="card-body bg-light rounded-bottom-4" id="slip-preview"
+                        style="overflow:auto; -webkit-overflow-scrolling:touch;">
+                        <!-- Canvas akan dimasukkan di sini -->
+                    </div>
                 </div>
 
-                <div class="mt-2 text-center">
-                    <button id="btn-fit" class="btn btn-sm btn-secondary" hidden onclick="fitWidth()">
-                        Fit Width
-                    </button>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <div class="modal fade" id="doc" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header" id="modal-header">
-                    <h4 class="modal-title" id="myModalLabel">Slip</h4>
-                    <button type="button"class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                </div>
-                <div class="modal-body text-center">
-                    <canvas id="pdf-canvas" class="d-block"></canvas>
-                    <button id="changeWidth" onclick="changeWidth()" class="btn btn-secondary">lihat</button>
-                    {{-- <div style="text-align: center;">
-                        <iframe id="path_doc" src="http://192.168.8.135:8000/file/document/employee/01_ktp_file.pdf"
-                            style="width:100%; height:500px;" frameborder="0"></iframe>
-                    </div> --}}
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <!-- Pesan Error -->
+                <div id="errorMessage" class="alert alert-danger d-none rounded-4 mt-3" role="alert">
+                    <i class="bi bi-exclamation-triangle me-1"></i>
+                    <span id="errorText"></span>
                 </div>
             </div>
         </div>
@@ -83,6 +73,7 @@
 @section('js_code')
     <script src="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
     <script src="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js"></script>
+    {{-- 
     <script>
         readyDB(function(db) {
 
@@ -157,6 +148,8 @@
 
 
         });
+
+        
 
 
         function dataShow(tableId, code_data) {
@@ -345,5 +338,290 @@
             // Safari / iOS friendly
             window.location.href = url;
         }
+    </script>
+ --}}
+
+    <script>
+        // JS Get Data
+        const masterData = new MasterData();
+
+
+
+        (async function() {
+            try {
+
+                const data = await masterData.getDatadataTable('slips', 'nrp', db['FILTER_APP']['PROFILE']['NRP']['value_data']);
+                const {
+                    years,
+                    monthsByYear
+                } = processSlipData(data);
+                conLog('data return', data);
+                conLog('processedData', monthsByYear);
+                years.forEach(year => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'btn btn-outline-primary rounded-pill' + (year === selectedYear ?
+                        ' active' : '');
+                    btn.textContent = year;
+                    btn.addEventListener('click', () => {
+                        document.querySelectorAll('#yearGroup .btn').forEach(b => b.classList
+                            .remove('active'));
+                        btn.classList.add('active');
+                        selectedYear = year;
+                        // Render ulang bulan sesuai tahun yang dipilih
+                        renderMonths(monthsByYear[year]);
+                    });
+                    yearGroup.appendChild(btn);
+                });
+                // Set default ke tahun terbaru (indeks pertama)
+                if (years.length > 0) {
+                    selectedYear = years[0];
+                    renderMonths(monthsByYear[selectedYear]);
+                }
+            } catch (error) {
+                console.error('Gagal mengambil data:', error);
+            }
+        })();
+    </script>
+
+    <script>
+        // JS Process this page
+        function processSlipData(data) {
+            const monthsByYear = {};
+
+            // Kumpulkan bulan per tahun
+            data.forEach(item => {
+                const year = item.year;
+                const month = item.month;
+
+                if (!monthsByYear[year]) {
+                    monthsByYear[year] = [];
+                }
+
+                if (!monthsByYear[year].includes(month)) {
+                    monthsByYear[year].push(month);
+                }
+            });
+
+            // Urutkan bulan di setiap tahun (ascending)
+            Object.keys(monthsByYear).forEach(year => {
+                monthsByYear[year].sort((a, b) => a - b);
+            });
+
+            // Dapatkan array tahun unik (terurut menurun)
+            const years = Object.keys(monthsByYear)
+                .map(Number)
+                .sort((a, b) => b - a);
+
+            return {
+                years, // [2026, 2025, 2024, 2023]
+                monthsByYear // {2023: [10,11,12], 2024: [1,2,...,12], ...}
+            };
+        }
+
+        function renderMonths(months) {
+            monthGroup.innerHTML = '';
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+            months.forEach(month => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'btn btn-outline-secondary rounded-pill' + (month === selectedMonth ? ' active' :
+                    '');
+                btn.textContent = monthNames[month - 1];
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('#monthGroup .btn').forEach(b => b.classList.remove(
+                        'active'));
+                    btn.classList.add('active');
+                    selectedMonth = month;
+                });
+                monthGroup.appendChild(btn);
+            });
+        }
+    </script>
+
+    <script src="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+        // Elemen DOM
+        const yearGroup = document.getElementById('yearGroup');
+        const monthGroup = document.getElementById('monthGroup');
+        const btnViewSlip = document.getElementById('btnViewSlip');
+        const slipResult = document.getElementById('slipResult');
+        const slipPreview = document.getElementById('slip-preview');
+        const errorMessage = document.getElementById('errorMessage');
+        const errorText = document.getElementById('errorText');
+        const btnZoomIn = document.getElementById('btnZoomIn');
+        const btnZoomOut = document.getElementById('btnZoomOut');
+        const btnFitWidth = document.getElementById('btnFitWidth');
+        const btnDownload = document.getElementById('btnDownload');
+
+        // Data tahun & bulan
+        const currentYear = new Date().getFullYear();
+        const years = Array.from({
+            length: 6
+        }, (_, i) => currentYear - i);
+        const months_element = [{
+                value: 1,
+                label: 'Jan'
+            }, {
+                value: 2,
+                label: 'Feb'
+            }, {
+                value: 3,
+                label: 'Mar'
+            },
+            {
+                value: 4,
+                label: 'Apr'
+            }, {
+                value: 5,
+                label: 'Mei'
+            }, {
+                value: 6,
+                label: 'Jun'
+            },
+            {
+                value: 7,
+                label: 'Jul'
+            }, {
+                value: 8,
+                label: 'Agu'
+            }, {
+                value: 9,
+                label: 'Sep'
+            },
+            {
+                value: 10,
+                label: 'Okt'
+            }, {
+                value: 11,
+                label: 'Nov'
+            }, {
+                value: 12,
+                label: 'Des'
+            }
+        ];
+
+        let selectedYear = currentYear;
+        let selectedMonth = new Date().getMonth() + 1;
+        let currentPdfDoc = null;
+        let currentScale = 1.5;
+        let currentPageNum = 1;
+        let currentOriginalFile = null; // menyimpan nama file asli (UUID tanpa ekstensi)
+
+      
+
+        // Render halaman PDF ke canvas
+        async function renderPage(pageNum) {
+            if (!currentPdfDoc) return;
+            const page = await currentPdfDoc.getPage(pageNum);
+            const viewport = page.getViewport({
+                scale: currentScale
+            });
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            canvas.style.width = viewport.width + 'px';
+            canvas.style.height = viewport.height + 'px';
+            canvas.style.display = 'block';
+            canvas.style.touchAction = 'manipulation';
+
+            slipPreview.innerHTML = '';
+            slipPreview.appendChild(canvas);
+
+            await page.render({
+                canvasContext: ctx,
+                viewport
+            }).promise;
+            currentPageNum = pageNum;
+        }
+
+        // Fit width
+        async function renderFitWidth() {
+            if (!currentPdfDoc) return;
+            const page = await currentPdfDoc.getPage(currentPageNum);
+            const containerWidth = slipPreview.clientWidth;
+            const viewport = page.getViewport({
+                scale: 1
+            });
+            currentScale = containerWidth / viewport.width;
+            await renderPage(currentPageNum);
+        }
+
+        // Muat PDF dari URL, simpan originalFile
+        async function loadPDF(url) {
+            try {
+                currentPdfDoc = await pdfjsLib.getDocument(url).promise;
+                // Ekstrak nama file asli (UUID) dari URL
+                const parts = url.split('/');
+                const filename = parts[parts.length - 1]; // ffc11d3c-...pdf
+                currentOriginalFile = filename.replace(/\.pdf$/i, ''); // UUID tanpa .pdf
+
+                
+                slipResult.classList.remove('d-none');
+                await renderFitWidth();
+            } catch (err) {
+                console.error(err);
+                errorText.textContent = 'Gagal memuat PDF. Pastikan file tersedia.';
+                errorMessage.classList.remove('d-none');
+            }
+        }
+
+        // Tombol Lihat Slip
+        btnViewSlip.addEventListener('click', async () => {
+            slipResult.classList.add('d-none');
+            errorMessage.classList.add('d-none');
+            currentPdfDoc = null;
+            currentScale = 1.5;
+            slipPreview.innerHTML =
+                '<div class="text-center py-3"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Memuat slip...</p></div>';
+
+            // URL file (relatif dari root web)
+            const dummyUrl = '/file/slips/ffc11d3c-d8de-4c18-88d0-f8afaaa7dd75.pdf';
+            // Untuk produksi: sesuaikan dengan endpoint Anda
+
+            btnViewSlip.disabled = true;
+            btnViewSlip.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Memuat...';
+
+            await loadPDF(dummyUrl);
+
+            btnViewSlip.disabled = false;
+            btnViewSlip.innerHTML = '<i class="bi bi-search me-2"></i>Lihat Slip';
+        });
+
+        // Kontrol Zoom
+        btnZoomIn.addEventListener('click', async () => {
+            if (!currentPdfDoc) return;
+            currentScale += 0.25;
+            await renderPage(currentPageNum);
+        });
+        btnZoomOut.addEventListener('click', async () => {
+            if (!currentPdfDoc) return;
+            if (currentScale > 0.5) {
+                currentScale -= 0.25;
+                await renderPage(currentPageNum);
+            }
+        });
+        btnFitWidth.addEventListener('click', async () => {
+            if (!currentPdfDoc) return;
+            await renderFitWidth();
+        });
+
+        // === FUNGSI DOWNLOAD ===
+        btnDownload.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!currentOriginalFile) {
+                alert('Tidak ada file yang dimuat.');
+                return;
+            }
+            // Nama file yang akan terdownload
+            const downloadName = `SLIP-${selectedYear}-${String(selectedMonth).padStart(2, '0')}.pdf`;
+            // Endpoint download (sesuaikan dengan route Anda)
+            const url = `/slip-download/${currentOriginalFile}/${encodeURIComponent(downloadName)}`;
+            // Redirect ke URL download
+            window.location.href = url;
+        });
     </script>
 @endsection()

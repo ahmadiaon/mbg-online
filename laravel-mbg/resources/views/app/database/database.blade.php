@@ -262,81 +262,112 @@
 
 @section('js_code')
     <script>
-        let element_option_type_data = '';
-        let element_option_chosee_table = '';
+        (async () => {
+            let element_option_type_data = '';
+            let element_option_chosee_table = '';
+            const masterData = new MasterData();
+            const db_master_data = await masterData.getDatadataTable('slips');
+            const data = await masterData.getDatadataTable('slips', 'nrp', db['FILTER_APP']['PROFILE']['NRP'][
+                'value_data'
+            ]);
 
-        readyDB(function(db) {
+            const get_cache = await masterData.getCache('db');
+            console.log('DATA', data);
+            console.log('cache data :', get_cache);
+            // console.log('db_master_data', db_master_data);
 
 
-            // TYPE DATA
-            Object.entries(db.database_tables['TYPE-DATA'].data).forEach(([key, value]) => {
-                element_option_type_data += `
-            <option value="${key}">${value['TYPE-DATA']['text_data']}</option>
-                `;
-            });
-            $('.type-data').append(element_option_type_data);
+            try {
+                const result = await CacheManager.getCache('db_role_4', null, null);
+                console.log('Cache retrieved:', result);
 
-            // TABLE OPTIONS
-            Object.entries(db.database_tables).forEach(([key, value]) => {
-                $('.database-table').append(`
-                    <option value="${key}">${value.description_table}</option>
-                `);
-            });
+                // Pastikan cache memiliki data yang valid
+                if (!result?.data?.cached) {
+                    console.error('Cache kosong atau tidak valid');
+                    return; // hentikan eksekusi
+                }
 
-            // MENU OPTIONS
-            Object.values(db.data_group_forms).forEach(element => {
-                $('#menu_table').append(`
-                    <option value="${element.uuid}">${element.description}</option>
-                `);
-            });
+                // Perbarui variabel global db
+                db = result.data.cached;
 
-            // DATA TABLE
-            datasetDatatable = Object.values(db.database_tables);
+                console.log('readyDB db di data', db);
+                // TYPE DATA
+                Object.entries(db.database_tables['TYPE-DATA'].data).forEach(([key, value]) => {
+                    element_option_type_data += `
+                        <option value="${key}">${value['TYPE-DATA']['text_data']}</option>
+                    `;
+                });
+                $('.type-data').append(element_option_type_data);
 
-            let templateDataTable = {
-                code_table: "menu_table",
-                parent_table: null,
-                primary_table: "code_table",
-                menu_table: "STAND-ALONE",
-                description_table: "Menu Table",
-                fields: {
-                    'code_table': {
-                        sort_field: '1',
-                        code_field: 'code_table',
-                        description_field: 'Code Table',
-                        visibility_data_field: 'filter',
-                        type_data_field: 'TEXT',
+                // TABLE OPTIONS
+                Object.entries(db.database_tables).forEach(([key, value]) => {
+                    $('.database-table').append(`
+                        <option value="${key}">${value.description_table}</option>
+                    `);
+                });
+
+                // MENU OPTIONS
+                Object.values(db.data_group_forms).forEach(element => {
+                    $('#menu_table').append(`
+                        <option value="${element.uuid}">${element.description}</option>
+                    `);
+                });
+
+                // DATA TABLE
+                datasetDatatable = Object.values(db.database_tables);
+
+                let templateDataTable = {
+                    code_table: "menu_table",
+                    parent_table: null,
+                    primary_table: "code_table",
+                    menu_table: "STAND-ALONE",
+                    description_table: "Menu Table",
+                    fields: {
+                        'code_table': {
+                            sort_field: '1',
+                            code_field: 'code_table',
+                            description_field: 'Code Table',
+                            visibility_data_field: 'filter',
+                            type_data_field: 'TEXT',
+                        },
+                        'description_table': {
+                            sort_field: '1',
+                            code_field: 'description_table',
+                            description_field: 'Description Table',
+                            visibility_data_field: 'show',
+                            type_data_field: 'TEXT',
+                        },
+                        'menu_table': {
+                            sort_field: '2',
+                            code_field: 'menu_table',
+                            description_field: 'Menu Table',
+                            visibility_data_field: 'show',
+                            type_data_field: 'TEXT',
+                        },
                     },
-                    'description_table': {
-                        sort_field: '1',
-                        code_field: 'description_table',
-                        description_field: 'Description Table',
-                        visibility_data_field: 'show',
-                        type_data_field: 'TEXT',
-                    },
-                    'menu_table': {
-                        sort_field: '2',
-                        code_field: 'menu_table',
-                        description_field: 'Menu Table',
-                        visibility_data_field: 'show',
-                        type_data_field: 'TEXT',
-                    },
-                },
-                data: datasetDatatable
+                    data: datasetDatatable
+                }
+
+                GROUP_DATA = 'database_tables';
+                let dataArrParameter = {
+                    tableId: 'menu_table',
+                    tableDataDetails: templateDataTable,
+                    datasetTable: null,
+                    paggingDatatable: true,
+                    staticName: null,
+                    isDeleteAction: false,
+                };
+                initDataTable(dataArrParameter);
+            } catch (error) {
+                console.error('Error parsing cache data:', error);
+                db = {};
             }
+        })();
 
-            GROUP_DATA = 'database_tables';
-            let dataArrParameter = {
-                tableId: 'menu_table',
-                tableDataDetails: templateDataTable,
-                datasetTable: null,
-                paggingDatatable: true,
-                staticName: null,
-                isDeleteAction: false,
-            };
-            initDataTable(dataArrParameter);
 
-        });
+
+
+
         /**/
     </script>
     @include('app.layout.JSDataDatatable')
@@ -545,7 +576,6 @@
                 }
             });
         }
-
 
         function importDatatable() {
             var form = $('#form-import-datatable')[0];

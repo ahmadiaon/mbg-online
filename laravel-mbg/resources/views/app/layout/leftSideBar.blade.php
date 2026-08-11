@@ -11,21 +11,9 @@
     <div class="menu-block customscroll">
         <div class="sidebar-menu">
             <ul id="accordion-menu">
-                <li class="dropdown">
-                    <a href="javascript:;" class="dropdown-toggle">
-                        <span class="micon bi bi-house"></span><span class="mtext">Home</span>
-                    </a>
-                    <ul class="submenu">
-                        <li hidden><a href="/">Dashboard 1</a></li>
-                        <li><a href="/struktur-organisasi">SO</a></li>
-                        <li id="app"><a href="/app">MENU</a></li>
-                    </ul>
-                </li>
-                @if (session('FILTER_APP')['USER']['role'] > 1)
-                    <li>
-                        <div class="dropdown-divider"></div>
-                    </li>
 
+
+                @if (session('FILTER_APP')['USER']['role'] > 1)
                     <li>
                         <div class="sidebar-small-cap">MANAGE</div>
                     </li>
@@ -60,7 +48,26 @@
                         </a>
                     </li>
                 @endif
-                @if (session('FILTER_APP')['USER']['role'] >= 20)
+                @if (in_array('SUPERADMIN', session('FILTER_APP.DEFAULT_FILTER.FEATURE', [])))
+                    <li>
+                        <div class="dropdown-divider"></div>
+                    </li>
+
+                    <li>
+                        <div class="sidebar-small-cap">FITUR</div>
+                    </li>
+                    <li>
+                        <a id="water-level" href="/feature/water-level" class="dropdown-toggle no-arrow">
+                            <span class="micon bi bi-box-seam"></span><span class="mtext">Water Level</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a id="file-manager" href="/feature/file-manager" class="dropdown-toggle no-arrow">
+                            <span class="micon bi bi-box-seam"></span><span class="mtext">File Manager</span>
+                        </a>
+                    </li>
+                @endif
+                @if (in_array('SUPERADMIN', session('FILTER_APP.DEFAULT_FILTER.FEATURE', [])))
                     <li>
                         <div class="dropdown-divider"></div>
                     </li>
@@ -79,7 +86,7 @@
                         </ul>
                     </li>
                 @endif
-                @if (session('FILTER_APP')['USER']['role'] >= 9)
+                @if (in_array('SUPERADMIN', session('FILTER_APP.DEFAULT_FILTER.FEATURE', [])))
                     <li>
                         <div class="dropdown-divider"></div>
                     </li>
@@ -92,10 +99,14 @@
                             <span class="micon bi bi-egg-fried"></span><span class="mtext">DATABASE</span>
                         </a>
                         <ul class="submenu">
+                            <li><a href="/struktur-organisasi">SO</a></li>
+                            <li id="app"><a href="/app">MENU</a></li>
                             <li><a id="user" href="/database/user">User</a></li>
                             <li><a id="menu" href="/database/menu">Menu</a></li>
                             <li><a id="form" href="/database/form">Form</a></li>
                             <li><a id="data" href="/database/data">Database</a></li>
+                            <li><a id="get-refresh-cache" href="/superadmin/get-refresh-cache">refresh cache</a></li>
+
                             <li><a id="form" href="/database/blank">BLANK</a></li>
                         </ul>
                     </li>
@@ -123,12 +134,12 @@
                         </a>
                     </li>
                 @endif
+                
                 <li>
                     <div class="dropdown-divider"></div>
                 </li>
-
                 <li>
-                    <div class="sidebar-small-cap">AKTIVITAS</div>
+                    <div class="sidebar-small-cap">PROFIL SAYA</div>
                 </li>
                 <li>
                     <a href="javascript:;" id="database" class="dropdown-toggle">
@@ -139,12 +150,6 @@
                         <li><a id="user" href="/me/kehadiran/cuti">Cuti</a></li>
                         <li><a id="user" href="/me/kehadiran/izin">Izin</a></li>
                     </ul>
-                </li>
-                <li>
-                    <div class="dropdown-divider"></div>
-                </li>
-                <li>
-                    <div class="sidebar-small-cap">PROFIL SAYA</div>
                 </li>
                 <li>
                     <a href="/profile" id="profile" class="dropdown-toggle no-arrow">
@@ -187,7 +192,6 @@
                         <span class="micon bi bi-box-arrow-right"></span><span class="mtext">Keluar</span>
                     </a>
                 </li>
-
             </ul>
         </div>
     </div>

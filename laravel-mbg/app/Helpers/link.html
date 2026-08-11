@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>📖 Lihat & Tambah Link | OnePage Viewer</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, 'Segoe UI', 'Inter', 'Roboto', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(145deg, #f1f5f9 0%, #e9eef3 100%);
+      min-height: 100vh;
+      padding: 2rem 1.2rem;
+    }
+
+    .container {
+      max-width: 950px;
+      margin: 0 auto;
+    }
+
+    /* header */
+    .header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .header h1 {
+      font-size: 2rem;
+      background: linear-gradient(135deg, #1e2f3f, #2c5282);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header p {
+      color: #4a627a;
+      margin-top: 6px;
+      font-size: 0.9rem;
+    }
+
+    /* kartu */
+    .card {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(1px);
+      border-radius: 32px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+      padding: 1.5rem 1.8rem;
+      margin-bottom: 1.8rem;
+      border: 1px solid rgba(255,255,255,0.7);
+    }
+
+    .card-title {
+      font-size: 1.35rem;
+      font-weight: 600;
+      margin-bottom: 1.3rem;
+      padding-left: 14px;
+      border-left: 4px solid #2c7da0;
+      color: #1f3a4b;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* form */
+    .input-group {
+      margin-bottom: 1.2rem;
+    }
+
+    label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 6px;
+      color: #1f3e53;
+      font-size: 0.85rem;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 28px;
+      border: 1.5px solid #d4e2ec;
+      background: white;
+      font-size: 0.95rem;
+      transition: 0.2s;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #2c7da0;
+      box-shadow: 0 0 0 3px rgba(44,125,160,0.15);
+    }
+
+    button {
+      background: #2c7da0;
+      border: none;
+      padding: 12px 26px;
+      border-radius: 40px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      color: white;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: 0.2s;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    button:hover {
+      background: #1f6390;
+      transform: translateY(-1px);
+    }
+
+    .btn-clear {
+      background: #5f7f9e;
+    }
+    .btn-clear:hover {
+      background: #446688;
+    }
+
+    /* info bar hanya menampilkan jumlah link */
+    .info-stats {
+      background: #eef3fa;
+      border-radius: 40px;
+      padding: 10px 18px;
+      margin-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: #2c4e6e;
+    }
+
+    /* daftar link (view only) */
+    .links-view {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 460px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .link-row {
+      background: white;
+      border-radius: 24px;
+      padding: 16px 20px;
+      border: 1px solid #e2edf2;
+      transition: all 0.15s;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .link-row:hover {
+      border-color: #cbdde9;
+      background: #fefefe;
+      transform: translateX(2px);
+    }
+
+    .link-info {
+      flex: 3;
+      min-width: 200px;
+    }
+
+    .link-title {
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: 6px;
+      color: #1f3e53;
+      word-break: break-word;
+    }
+
+    .link-url {
+      font-size: 0.75rem;
+      color: #5e7c97;
+      word-break: break-all;
+      text-decoration: none;
+      display: inline-block;
+      max-width: 320px;
+    }
+
+    .link-url:hover {
+      text-decoration: underline;
+      color: #2c7da0;
+    }
+
+    .open-badge {
+      background: #eef2f8;
+      padding: 6px 14px;
+      border-radius: 40px;
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: #2c7da0;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      transition: 0.1s;
+    }
+
+    .open-badge:hover {
+      background: #e3eef7;
+      cursor: pointer;
+    }
+
+    .empty-message {
+      text-align: center;
+      padding: 50px 20px;
+      color: #7f9cbb;
+      font-style: italic;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 2rem;
+      font-size: 0.7rem;
+      color: #7e98b3;
+    }
+
+    ::-webkit-scrollbar {
+      width: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #e1ecf3;
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #b3cbdf;
+      border-radius: 10px;
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 1rem; }
+      .card { padding: 1.2rem; }
+      .link-row { flex-direction: column; align-items: flex-start; gap: 10px; }
+      .open-badge { align-self: flex-end; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>📚 Koleksi Link Saya</h1>
+    <p>Lihat semua link tersimpan · Tambahkan link baru dengan form di bawah</p>
+  </div>
+
+  <!-- FORM UNTUK MENAMBAH LINK (TANPA MANAJEMEN HAPUS/EDIT) -->
+  <div class="card">
+    <div class="card-title">
+      <span>➕</span> Tambah Link Baru
+    </div>
+    <form id="addLinkForm">
+      <div class="input-group">
+        <label>📌 Judul / Nama Link</label>
+        <input type="text" id="titleInput" placeholder="Contoh: YouTube, Google, Artikel favorit..." autocomplete="off" required>
+      </div>
+      <div class="input-group">
+        <label>🔗 Alamat URL (link)</label>
+        <input type="text" id="urlInput" placeholder="https:// atau nama domain (contoh: github.com)" autocomplete="off" required>
+      </div>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <button type="submit" id="submitBtn">💾 Simpan Link</button>
+        <button type="button" id="clearFormBtn" class="btn-clear">🧹 Bersihkan Form</button>
+      </div>
+    </form>
+    <div class="info-stats">
+      <span>📄 <strong id="totalCount">0</strong> link tersimpan</span>
+      <span>💾 Tersimpan otomatis di browser Anda</span>
+    </div>
+  </div>
+
+  <!-- DAFTAR LINK (VIEW ONLY, TIDAK ADA TOMBOL HAPUS/EDIT) -->
+  <div class="card">
+    <div class="card-title">
+      <span>👁️</span> Daftar Link (View Only)
+    </div>
+    <div id="linksListView" class="links-view">
+      <div class="empty-message">✨ Belum ada link. Yuk tambahkan link pertama!</div>
+    </div>
+    <div style="margin-top: 14px; font-size: 0.7rem; text-align: right; opacity: 0.6;">
+      🔗 Klik pada URL atau tombol "Buka Link" untuk membuka halaman
+    </div>
+  </div>
+  <footer>
+    ⚡ Mode view only — Anda hanya bisa melihat dan menambah link. Tidak ada opsi hapus/edit untuk menjaga tampilan tetap bersih.
+  </footer>
+</div>
+
+<script>
+  // ======================= DATABASE SEDERHANA (localStorage) =======================
+  const STORAGE_KEY = "simple_links_viewonly";
+  
+  // Struktur data: setiap item memiliki { id, title, url }
+  let linkItems = [];
+
+  // DOM elements
+  const titleInput = document.getElementById('titleInput');
+  const urlInput = document.getElementById('urlInput');
+  const addForm = document.getElementById('addLinkForm');
+  const linksContainer = document.getElementById('linksListView');
+  const totalSpan = document.getElementById('totalCount');
+  const clearFormBtn = document.getElementById('clearFormBtn');
+
+  // ---------- Fungsi bantuan ----------
+  function loadFromStorage() {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          linkItems = parsed;
+          return;
+        }
+      } catch(e) { console.warn(e); }
+    }
+    // Jika kosong, beri contoh demo ringan agar user langsung melihat tampilan (tapi bisa ditambah sendiri)
+    // Demi pengalaman awal yang enak dipandang, tambahkan 2 contoh link (tanpa mengganggu, user bebas menambah link lain)
+    // TAPI karena tidak ada hapus, contoh ini bisa tetap ada. Tapi sesuai "view" dan "tambah", contoh boleh membantu.
+    // Namun supaya tidak mengganggu, kita beri contoh minimal yang informatif.
+    linkItems = [
+      { id: 1001, title: "Google - Pencarian", url: "https://www.google.com" },
+      { id: 1002, title: "YouTube - Video", url: "https://youtube.com" },
+      { id: 1003, title: "GitHub - Coding", url: "https://github.com" }
+    ];
+    // simpan contoh agar konsisten
+    saveToStorage();
+  }
+
+  function saveToStorage() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(linkItems));
+  }
+
+  // Validasi & perbaiki URL (tambah https jika perlu)
+  function normalizeUrl(rawUrl) {
+    let url = rawUrl.trim();
+    if (url === "") return { valid: false, message: "URL tidak boleh kosong" };
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = 'https://' + url;
+    }
+    try {
+      new URL(url);
+      return { valid: true, url: url };
+    } catch(err) {
+      return { valid: false, message: "Format URL tidak valid. Gunakan contoh: example.com atau https://situs.com" };
+    }
+  }
+
+  // Escape HTML untuk keamanan
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+      if (m === '&') return '&amp;';
+      if (m === '<') return '&lt;';
+      if (m === '>') return '&gt;';
+      return m;
+    });
+  }
+
+  // RENDER SEMUA LINK (VIEW ONLY — TIDAK ADA TOMBOL HAPUS/EDIT)
+  function renderLinks() {
+    if (!linksContainer) return;
+    
+    if (linkItems.length === 0) {
+      linksContainer.innerHTML = `<div class="empty-message">📭 Belum ada link. Tambahkan link menggunakan form di atas.</div>`;
+      totalSpan.innerText = "0";
+      return;
+    }
+    
+    totalSpan.innerText = linkItems.length;
+    let html = "";
+    linkItems.forEach(link => {
+      const safeTitle = escapeHtml(link.title);
+      const displayUrl = link.url.length > 58 ? link.url.slice(0, 55) + "..." : link.url;
+      const safeDisplayUrl = escapeHtml(displayUrl);
+      const fullRawUrl = link.url;
+      
+      html += `
+        <div class="link-row">
+          <div class="link-info">
+            <div class="link-title">${safeTitle}</div>
+            <a href="${fullRawUrl}" target="_blank" rel="noopener noreferrer" class="link-url" title="${escapeHtml(link.url)}">${safeDisplayUrl}</a>
+          </div>
+          <div class="open-badge" onclick="window.open('${fullRawUrl}', '_blank', 'noopener')">
+            🔗 Buka Link
+          </div>
+        </div>
+      `;
+    });
+    linksContainer.innerHTML = html;
+  }
+
+  // TAMBAH LINK BARU (tanpa edit/delete management)
+  function addNewLink(event) {
+    event.preventDefault();
+    
+    let title = titleInput.value.trim();
+    let rawUrl = urlInput.value.trim();
+    
+    if (title === "") {
+      alert("❌ Judul link harus diisi.");
+      return;
+    }
+    if (rawUrl === "") {
+      alert("❌ URL / link harus diisi.");
+      return;
+    }
+    
+    const urlCheck = normalizeUrl(rawUrl);
+    if (!urlCheck.valid) {
+      alert(`❌ ${urlCheck.message}`);
+      return;
+    }
+    
+    const newId = Date.now() + Math.floor(Math.random() * 10000);
+    const newLink = {
+      id: newId,
+      title: title,
+      url: urlCheck.url
+    };
+    
+    linkItems.push(newLink);
+    saveToStorage();
+    renderLinks();
+    
+    // reset form setelah simpan
+    titleInput.value = "";
+    urlInput.value = "";
+    titleInput.focus();
+  }
+  
+  // Bersihkan form tanpa menyimpan
+  function clearForm() {
+    titleInput.value = "";
+    urlInput.value = "";
+    titleInput.focus();
+  }
+
+  // ========== INIT ==========
+  function init() {
+    loadFromStorage();
+    renderLinks();
+    
+    // event listener form tambah
+    addForm.addEventListener('submit', addNewLink);
+    clearFormBtn.addEventListener('click', clearForm);
+  }
+  
+  init();
+</script>
+</body>
+</html>

@@ -9,6 +9,7 @@ use App\Http\Controllers\PersonalController;
 use App\Http\Controllers\RecruitmentController;
 use App\Http\Controllers\ShiftKaryawanController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\WaterLevelController;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
@@ -73,7 +74,9 @@ Route::middleware(['auth.login'])->group(function () {
     Route::get('/profile', [PersonalController::class, 'Profile']);
     Route::get('/my-slip', [GeneralRouteController::class, 'mySlip']);
     Route::get('/app', [PersonalController::class, 'Menu']);
-    Route::get('/', [PersonalController::class, 'Menu']);
+    Route::get('/', function () {
+        return redirect('/app', 301);
+    });
     Route::get('/user', [PersonalController::class, 'User']);
 
     Route::prefix('/payroll')->group(function () {
@@ -94,8 +97,21 @@ Route::middleware(['auth.login'])->group(function () {
             Route::post('/import-shift', [ShiftKaryawanController::class, 'importShift']);
         });
 
+        Route::get('/file-manager', [GeneralRouteController::class, 'manageFile']);
+
+
+
 
         Route::post('/slip', [DatabaseController::class, 'slipStore']);
+    });
+
+
+    Route::prefix('/feature')->group(function () {
+        Route::get('/water-level', [WaterLevelController::class, 'index']);
+        Route::post('/water-level', [WaterLevelController::class, 'store']);
+        Route::get('/water-level/data', [WaterLevelController::class, 'data']);
+        Route::put('/water-level/{id}', [WaterLevelController::class, 'update']);
+        Route::delete('/water-level/{id}', [WaterLevelController::class, 'destroy']);
     });
 
 
@@ -113,11 +129,7 @@ Route::middleware(['auth.login'])->group(function () {
             });
         });
 
-
         Route::get('/user', [UserController::class, 'manageUser']);
-
-
-
         Route::get('/menu', function () {
             return view('app.database.menu.index');
         });
@@ -133,6 +145,15 @@ Route::middleware(['auth.login'])->group(function () {
             Route::post('/import-datatable', [PermintaanController::class, 'importDatatable']);
             Route::post('/export-datatable', [PermintaanController::class, 'exportDatatable']);
         });
+
+        Route::prefix('/stok')->group(function () {
+            // Halaman utama permintaan
+            Route::get('/stok', [PermintaanController::class, 'indexPermintaan']);
+
+            // Import/Export datatable
+            Route::post('/import-datatable', [PermintaanController::class, 'importDatatable']);
+            Route::post('/export-datatable', [PermintaanController::class, 'exportDatatable']);
+        });
     });
 
 
@@ -141,35 +162,62 @@ Route::middleware(['auth.login'])->group(function () {
             Route::get('/absensi', [AbsensiController::class, 'meAbsensi']);
         });
     });
+
+    Route::prefix('/source')->group(function () {
+        Route::prefix('/database')->group(function () {
+            Route::prefix('/menu')->group(function () {
+                Route::post('/getdatadatatable',  [DatabaseDataController::class, 'getDatadataTable']);
+            });
+            Route::prefix('/cache')->group(function () {
+                Route::post('/get-cache', [DatabaseDataController::class, 'masterCacheGet']);
+            });
+        });
+    });
 });
 
 
-
 Route::prefix('/database')->group(function () {
-    Route::post('/refresh-session', [DatabaseDataController::class, 'refreshSession']);
+    Route::post('/refresh-session', [DatabaseDataController::class, 'masterCacheGet']);
     Route::GET('/get-refresh-session', [DatabaseDataController::class, 'getrefreshSession']);
+});
+Route::prefix('/superadmin')->group(function () {
+    Route::post('/cache/forget', [DatabaseDataController::class, 'masterCacheForget']);
+    Route::GET('/get-refresh-cache', [DatabaseDataController::class, 'masterCacheSet']);
 });
 
 Route::prefix('/hauling')->group(function () {
     Route::get('/time-cek', [GeneralRouteController::class, 'haulingTimerCek']);
 });
 
-
-Route::get('/authentication', [GeneralRouteController::class, 'authentication']);
-
-
 Route::get('/struktur-organisasi', function () {
     return view('app.database.struktur-organisasi.struktur_organisasi_index');
 });
 
 
+
+
+
+
+
+// ============= AUTHENTICATION ROUTES ==============
+Route::get('/authentication/{auth_token}', [GeneralRouteController::class, 'authentication']);
+// Route::get('/authentication', [GeneralRouteController::class, 'authentication']);
+Route::post('/authentication/{auth_token}', [GeneralRouteController::class, 'processToken']);
+// ============= AUTHENTICATION ROUTES ==============
+
 Route::prefix('/auth')->group(function () {
     Route::get('/login', function () {
-
+        Session::flush();
+        Session::invalidate();
+        Session::regenerateToken();
         return view('login');
     })->name('login');
 
     Route::get('/logout', function () {
+        Session::flush();
+        Session::invalidate();
+        Session::regenerateToken();
+
         return redirect('/auth/login');
     });
 

@@ -95,7 +95,30 @@
                     <div class="d-grid mt-3 mb-3">
                         <button type="submit" class="btn btn-primary">Masuk</button>
                     </div>
+
+
                 </form>
+                <div id="wa-verification" class="text-center" style="display: none;">
+                    <hr class="my-4">
+                    <div class="mb-3">
+                        {{-- Ikon centang --}}
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#198754"
+                            stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <h5 class="fw-bold text-dark">Verifikasi Diperlukan</h5>
+                    <p class="text-muted small">
+                        Demi keamanan akun Anda, admin perlu memvalidasi identitas.<br>
+                        Klik tombol di bawah untuk mengirim pesan otomatis ke WhatsApp Admin.
+                    </p>
+                    <a href="#" id="btn-wa" target="_blank" class="btn btn-success w-100">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="20"
+                            height="20" class="me-2">
+                        Lanjutkan ke WhatsApp
+                    </a>
+                </div>
 
                 <div class="text-center mt-3 small text-muted">Untuk bantuan login hubungi
                     <a href="https://wa.me/6281255897044">
@@ -132,10 +155,11 @@
 
             console.log('Semua storage telah dihapus.');
         }
-
+        
         clearAllStorage();
         $(document).ready(function() {
             localStorage.clear();
+            isPin = false;
             // Auto move PIN input
             $(document).on('input', '.pinNumber', function() {
                 var val = $(this).val().replace(/[^0-9]/g, '');
@@ -155,6 +179,8 @@
                     pinVal += $(this).val();
                 });
                 $('#pin').val(pinVal);
+                console.log('NIK_KTP:', $('#nik_ktp').val());
+                console.log($(this).serialize());
 
                 $.ajax({
                     url: "{{ route('login.ajax') }}",
@@ -165,21 +191,50 @@
                     data: $(this).serialize(),
                     success: function(res) {
                         $('.loadingLogin').hide();
-                        console.log('login res :', res);
+                        
+                        console.log('Response :', res);
                         if (res.status === 'success') {
                             // login selesai
                             // simpan token ke localStorage
-                            localStorage.setItem('auth_token', JSON.stringify(res.data
-                                .auth_login));
+                            localStorage.setItem('auth_token', JSON.stringify(res
+                                .auth_token));
 
                             // redirect kalau perlu
-                            window.location.href = "/authentication";
+                            if (isPin === true) {
+                                console.log('PIN sudah diatur, redirect ke /app');
+                                localStorage.setItem('FILTER_APP', JSON.stringify(res.FILTER_APP));
+                                window.location.href = "/app";
+                                return false; // hentikan eksekusi lebih lanjut
+                            } else {
+                                $('#form-login').hide();
+                                // Tampilkan blok verifikasi WA
+                                $('#wa-verification').show();
+
+                                // Siapkan link WhatsApp
+                                var nama = res['FILTER_APP']['USER']['data_identitias_karyawan']['NAMA-KARYAWAN'] || '-';
+                                var nrp = $('#nrp').val(); // ambil dari input
+                                var pesan =
+                                    `Hallo saya ${nama} | NRP ${nrp} | Meminta validasi login ke APP Mitrabarito. Mohon bantuannya. Terima kasih.`;
+                                var waLink =
+                                    `https://wa.me/6281255897044?text=${encodeURIComponent(pesan)}`;
+                                $('#btn-wa').attr('href', waLink);
+
+                                console.log(waLink);
+
+                                console.log('PIN belum diatur, redirect ke /authentication');
+                                return false; // hentikan eksekusi lebih lanjut
+                                // window.location.href = "/authentication";
+                            }
+
+
                         }
 
                         // kalau user belum set PIN → minta NIK
                         if (res.data && res.data.isPin === false) {
                             $('#nik_ktp_group').show();
                             $('.pin').hide();
+                            isPin = false;
+                            
 
                         }
 
@@ -187,6 +242,7 @@
                         if (res.data && res.data.isPin === true) {
                             $('.pin').show();
                             $('#nik_ktp_group').hide();
+                            isPin = true;
 
                         }
                         if (res.data.notFound === true) {
@@ -206,12 +262,12 @@
                     error: function(xhr) {
                         $('.loadingLogin').hide();
                         let res = xhr.responseJSON;
-
+                        console.log('Error Response :', $('#nrp').val());
                         // ini baru error beneran → tampil merah
                         $('#errorBox')
                             .removeClass('d-none alert-success')
                             .addClass('alert-danger')
-                            .text(res.message);
+                            .text(res.message );
                     }
 
 

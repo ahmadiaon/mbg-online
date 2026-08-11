@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\GroupForm;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class GroupFormController extends Controller
 {
@@ -34,33 +35,7 @@ class GroupFormController extends Controller
     //     return ResponseFormatter::ResponseJson($data, 'message', 200);
     // }
 
-    public function getDatadataTable(Request $request)
-    {
-        // 1. Validasi dasar
-        $request->validate([
-            'table_name' => 'required|string',
-        ]);
-
-        $tableName = $request->table_name;
-
-        // 2. Whitelist tabel (WAJIB demi keamanan)
-
-        // 3. Ambil semua request kecuali table_name
-        $filters = collect($request->all())->except('table_name');
-
-        // 4. Query dinamis
-        $query = DB::table($tableName);
-
-        foreach ($filters as $field => $value) {
-            if (!is_null($value) && $value !== '') {
-                $query->where($field, $value);
-            }
-        }
-
-        $data = $query->get();
-
-        return ResponseFormatter::ResponseJson($data, 'success', 200);
-    }
+    
 
 
     public function storeDatadataTable(Request $request)

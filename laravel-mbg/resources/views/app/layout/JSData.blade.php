@@ -28,7 +28,7 @@
     let db = null;
 
     // Semua JS lain wajib tunggu ini
-    window.dbReady = initDatabase();
+    // window.dbReady = initDatabase();
 
     function hideLoadingContent() {
         $('.loading-content').hide();
@@ -84,6 +84,8 @@
             year,
             from: null
         };
+
+
 
 
 
@@ -337,7 +339,9 @@
                     console.log('data_karyawan', data_karyawan);
                     console.log('filtered', getAksesKaryawan(data_filter_karyawan, data_karyawan));
 
-                    localStorage.setItem('FILTER-APP', JSON.stringify(db['FILTER_APP']['ON_FILTER']));
+                    localStorage.setItem('FILTER-APP', JSON.stringify(db['FILTER_APP'][
+                        'ON_FILTER'
+                    ]));
 
                     setDatabase('DATABASE', db);
                     $('.refresh-data').hide();
@@ -432,6 +436,7 @@
             randNumber = localStorage.getItem('randNumber');
             const request = indexedDB.open("MyAppDB-" + randNumber, 1);
             console.log('randNumber di initDatabase: ' + randNumber);
+
             request.onupgradeneeded = function(event) {
                 console.log('[UPGRADE] onupgradeneeded terjadi');
 
@@ -479,6 +484,8 @@
 
     function initUI() {
         NRP_USER = db['FILTER_APP']['PROFILE']['NRP']['value_data'];
+        console.log('USER di initUI: ', db);
+        $('.user-nrp').text(db['FILTER_APP']['PROFILE']['NRP']['value_data']);
         $('.user-name').text(db['FILTER_APP']['PROFILE']['NAMA-KARYAWAN']['text_data']);
         $('.user-jabatan').text(db['FILTER_APP']['PROFILE']['JABATAN']['text_data']);
         $('.user-divisi').text(db['FILTER_APP']['PROFILE']['DIVISI']['text_data']);
@@ -521,25 +528,26 @@
     async function getReadyDatabase() {
         console.log('function ======== getReadyDatabase');
         // try {
-        const dbInstance = await initDatabase();
-        let result = await getDatabase('DATABASE');
+        // const dbInstance = await initDatabase();
+        // let result = getLocalStorage('FILTER_APP');
+        let result = {
+            FILTER_APP: getLocalStorage('FILTER_APP')
+        };
         db = result;
         console.log('in getReadyDatabase, db:', result);
-        if (!result && result == null) {
-            await refreshSession();
-            result = await getDatabase('DATABASE');
-            db = result;
-            console.log('in if, db:', db);
-            if (!db && db == null) {
-                console.log('db tetap null')
-            }
-        }
-        return db;
-        // } catch (error) {
-        //     console.log('db tetap null')
-        //     db = {};
-        //     return db;
+        // if (!result && result == null) {
+        //     // await refreshSession();
+        //     result = {
+        //         FILTER_APP: getLocalStorage('FILTER_APP')
+        //     };
+        //     // result = await getDatabase('DATABASE');
+        //     db = result;
+        //     console.log('in if, db:', db);
+        //     if (!db && db == null) {
+        //         console.log('db tetap null')
+        //     }
         // }
+        return db;
     }
 
     async function clearAllStorage() {
@@ -624,4 +632,248 @@
             console.log('IndexedDB ditutup manual');
         }
     }
+
+
+    // ========== Preview Helper ==========
+    window.docxShow = {
+        /**
+         * Tampilkan PDF di modal.
+         * @param {string} url  - URL file PDF (harus bisa diakses browser)
+         * @param {Object} opts - { title?: string }
+         */
+        pdf(url, opts = {}) {
+            const title = opts.title || 'Preview PDF';
+            const modalId = 'modal-pdf-' + Date.now();
+            const html = `
+            <div class="modal fade" id="${modalId}" tabindex="-1">
+                <div class="modal-dialog modal-xl modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">${title}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body p-0" style="height:85vh;">
+                            <iframe src="${url}" width="100%" height="100%" style="border:none;"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+            document.body.insertAdjacentHTML('beforeend', html);
+            const el = document.getElementById(modalId);
+            const modal = new bootstrap.Modal(el);
+            modal.show();
+            el.addEventListener('hidden.bs.modal', () => el.remove());
+        },
+
+        /**
+         * Tampilkan gambar di modal.
+         * @param {string} url  - URL gambar
+         * @param {Object} opts - { title?: string, alt?: string }
+         */
+        img(url, opts = {}) {
+            const title = opts.title || 'Preview Gambar';
+            const alt = opts.alt || 'gambar';
+            const modalId = 'modal-img-' + Date.now();
+            const html = `
+            <div class="modal fade" id="${modalId}" tabindex="-1">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">${title}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body text-center">
+                            <img src="${url}" alt="${alt}" class="img-fluid">
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+            document.body.insertAdjacentHTML('beforeend', html);
+            const el = document.getElementById(modalId);
+            const modal = new bootstrap.Modal(el);
+            modal.show();
+            el.addEventListener('hidden.bs.modal', () => el.remove());
+        },
+
+        /**
+         * Otomatis pilih pdf/img berdasarkan ekstensi.
+         * @param {string} url
+         * @param {Object} opts - { title?, alt? }
+         */
+        auto(url, opts = {}) {
+            const ext = url.split('.').pop().toLowerCase();
+            if (ext === 'pdf') return this.pdf(url, opts);
+            if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].includes(ext)) return this.img(url, opts);
+            alert('Format file tidak didukung untuk preview langsung.');
+        }
+    };
+
+
+    // MasterData.js ini untuk table
+    class MasterData {
+        constructor(baseUrl = '/api/master') {
+            this.baseUrl = baseUrl;
+        }
+
+        async getDatadataTable(code_table, field_data = null, code_data = null) {
+            let _url = '/source/database/menu/getdatadatatable';
+            console.log('FUNCTION getDatadataTable', code_table, field_data, code_data);
+            console.log('FUNCTION getDatadataTable _url', _url);
+            const response = await fetch(_url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
+                        'content')
+                },
+                body: JSON.stringify({
+                    table_name: code_table,
+                    field: field_data,
+                    value_field: code_data
+                })
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const result = await response.json();
+            // Render tombol tahun
+
+            conLog('response getdatadatatable', result);
+            return result.data;
+        }
+
+        async getCache(key, code_table = null, code_data = null) {
+
+
+            console.log('FUNCTION getCache', key, code_table, code_data);
+            const response = await fetch('/source/database/cache/get-cache', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
+                        'content')
+                },
+                body: JSON.stringify({
+                    key: key,
+                    code_table: code_table,
+                    code_data: code_data
+                })
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const result = await response.json();
+            // Render tombol tahun
+
+            conLog('response getcache', result);
+            return result.data;
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // Ambil data (seluruh tabel atau satu record)
+        async get(codeTable, codeData = null) {
+            const params = new URLSearchParams({
+                code_table: codeTable
+            });
+            if (codeData) params.append('code_data', codeData);
+            const res = await fetch(`${this.baseUrl}?${params}`);
+            if (!res.ok) throw new Error(await res.text());
+            return res.json();
+        }
+
+        // Hapus & isi ulang cache
+        async refresh(codeTable) {
+            const res = await fetch(`${this.baseUrl}/refresh`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    code_table: codeTable
+                }),
+            });
+            if (!res.ok) throw new Error(await res.text());
+            return res.json();
+        }
+
+        // (Opsional) Kirim data untuk di-cache
+        async set(codeTable, data) {
+            const res = await fetch(`${this.baseUrl}/set`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    code_table: codeTable,
+                    data
+                }),
+            });
+            if (!res.ok) throw new Error(await res.text());
+            return res.json();
+        }
+
+        helloWorld() {
+            console.log('Hello, World!');
+        }
+    }
+
+    // ini untuk mengelola cache di sisi server (Laravel)
+    const CacheManager = {
+        baseUrl: '/source/database/cache',
+        getCsrfToken() {
+            return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        },
+        async getCache(key, code_table = null, code_data = null) {
+            const res = await fetch(`${this.baseUrl}/get-cache`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': this.getCsrfToken(),
+                },
+                body: JSON.stringify({
+                    key,
+                    code_table,
+                    code_data
+                }),
+            });
+            if (!res.ok) throw new Error(await res.text());
+            return res.json();
+        },
+        async deleteCache(key) {
+            const res = await fetch(`${this.baseUrl}/delete-cache`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': this.getCsrfToken(),
+                    'auth_token': '{{ session('auth_token') }}',
+                },
+                body: JSON.stringify({
+                    key
+                }),
+            });
+            if (!res.ok) throw new Error(await res.text());
+            return res.json();
+        }
+    };
 </script>

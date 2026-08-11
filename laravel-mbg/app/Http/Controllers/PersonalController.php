@@ -14,6 +14,7 @@ class PersonalController extends Controller
         return view('app.personal.user');
     }
     public function Menu(){
+        // return session('FILTER_APP')['USER'];
         return view('app.personal.menu');
     }
 }

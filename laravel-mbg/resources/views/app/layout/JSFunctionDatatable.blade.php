@@ -31,13 +31,11 @@
         let header_table_support = '';
         datatableIdElement = staticName ? staticName : tableId;
         TABLE_ID = tableId;
+        conLog('allDataFilter', allDataFilter);
         dataSetFilter = allDataFilter?.[TABLE_ID]?.dataSetFilter;
         conLog('dataSetFilter awal', dataSetFilter);
-
+        conLog('db init', db);
         let idElementTable = arrParameter.staticName ? arrParameter.staticName : tableId;
-
-
-
 
         if (Array.isArray(dataSetFilter) && dataSetFilter.length >
             0) {
@@ -61,20 +59,19 @@
         // conLog('tableDataDetails before sort', tableDataDetails);
         // Mengurutkan berdasarkan sort_field (dikonversi ke angka)
         if (tableDataDetails == null || !tableDataDetails['fields'] || tableDataDetails.fields.length === 0) {
-            tableDataDetails = db['database_tables'][tableId];
+            tableDataDetails = db['database_tables'][TABLE_ID];// arrParameter['tableDataDetails'];
             primary_key_field = tableDataDetails['primary_table'];
-            // conLog('tableDataDetails on null', tableDataDetails)
-            tableDataDetails.fields = db['database_tables'][tableId]['fields'];
+            conLog('tableDataDetails on null', tableDataDetails)
         } else {
             primary_key_field = tableDataDetails['primary_table'];
-            db['database_tables'][tableId] = tableDataDetails;
+            arrParameter['tableDataDetails'] = tableDataDetails;
             let new_data_dataset_object = {};
             Object.entries(tableDataDetails['data']).forEach(([key_nrp, data_array_dataset]) => {
                 new_data_dataset_object[key_nrp] = data_array_dataset;
             });
             // conLog('new_data_dataset_object', new_data_dataset_object)
             tableDataDetails['data'] = new_data_dataset_object;
-            if (!db['database_tables'][tableId]) {
+            if (!arrParameter['tableDataDetails']) {
                 setDatabase('DATABASE', db);
             }
 
@@ -98,9 +95,9 @@
         if (!tableDataDetails.data || tableDataDetails.data.length === 0) {
             // conLog('dataset null', tableDataDetails.data);
             if (hasChild) {
-                tableDataDetails.data = db['database_tables'][tableId]['join_data'];
+                tableDataDetails.data = arrParameter['tableDataDetails']['join_data'];
             } else {
-                tableDataDetails.data = db['database_tables'][tableId]['data'];
+                tableDataDetails.data = arrParameter['tableDataDetails']['data'];
             }
             // conLog('tableDataDetails.data NEW', tableDataDetails.data);
 
@@ -642,8 +639,9 @@
 
 
         let actionButtonTable = {
-            render: function(data, type, row) {
-                let dataShow_element = `<a href="#" onclick="dataShow('${tableId}','${toUUID(row[primary_key_field])}')">
+            render: function(data, type, row,meta) {
+                 const index = meta.row; 
+                let dataShow_element = `<a href="#" onclick="dataShow('${tableId}','${toUUID(row[primary_key_field])}', ${index})">
                                 <div class="btn btn-sm btn-outline-warning mr-1">
                                     <i class="icon-copy bi bi-arrow-up-right-square"></i>
                                 </div>
@@ -726,13 +724,10 @@
         const table = $('#datatable-' + datatableIdElement).DataTable(); // ambil instance aktif
         // Toggle tampil / sembunyi
         table.column(columnIndex).visible(!isVisible);
-
-
         // Ubah ikon bila ada
         const icon = document.getElementById(`toggle-column-${tableId}-${columnIndex}`);
         icon.className = isVisible ? hideIcon : showIcon;
         $(`#toggle-column-${tableId}-${columnIndex}`).data('value', isVisible ? 'hide' : 'show');
-
     }
 
 

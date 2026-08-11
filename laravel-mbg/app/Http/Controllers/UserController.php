@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 
 class UserController extends Controller
@@ -23,8 +24,6 @@ class UserController extends Controller
             return null;
         }
         $NRP = $user->nrp;
-
-
 
         $data_identitias_karyawan = DatabaseData::where('code_table_data', $database_data['database_table'])
             ->whereNull('date_end')
@@ -47,24 +46,28 @@ class UserController extends Controller
             'nik_ktp' => 'nullable|string',
         ]);
 
+
+
         $user = User::where('nrp', $request->nrp)->first();
 
         $isValid = false;
         $message = '';
         $data = [];
         $token = null;
+        $data_db = [];
+        $data = ['isPin' => true, 'errorType' => null, 'notFound' => false];
+
 
         if (!$user) {
             $message = 'User tidak ditemukan';
-            $data = ['notFound' => true];
+            $data['notFound'] = true;
         } elseif ($user->pin === null) {
+            $data['isPin'] = false;
             if (!$request->nik_ktp) {
                 $message = 'PIN belum di-set, masukkan NIK';
-                $data = ['isPin' => false];
             } elseif (!Hash::check($request->nik_ktp, $user->password)) {
-
-                $message = Hash::make($request->nik_ktp); //'NIK salah';
-                $data = ['errorType' => 'nik'];
+                $message = "NIK salah";
+                $data['errorType'] = 'nik';
             } else {
                 $isValid = true;
                 $message = 'Login berhasil dengan NIK';
@@ -72,39 +75,60 @@ class UserController extends Controller
         } else {
             if (!$request->pin) {
                 $message = 'Masukkan PIN';
-                $data = ['isPin' => true];
+                $data['isPin'] = true;
             } elseif (!Hash::check($request->pin, $user->pin)) {
                 $message = 'PIN salah';
-                $data = ['errorType' => 'pin'];
+                $data['errorType'] = 'pin';
             } else {
+                $data['isPin'] = true;
                 $isValid = true;
                 $message = 'Login berhasil';
             }
         }
 
         if ($isValid) {
-            $token = Str::random(60);
-            $user->auth_login = $token;
-            $user->save();
+            if ($data['isPin'] === true) {
+                $token = Str::random(60);
+
+                $user->auth_login = $token;
+                $user->save();
+            } else {
+                $token = $user->auth_login;
+            }
+
+            // }
+            // return response()->json([
+            //     'request' => $request->all(),
+            //     'user' => $user,
+            //     'data_db' => $data_db,
+            //     'session' => session('auth_token'),
+            // ], 200);
 
 
+            $data_db = DatabaseDataController::refreshSessionProses($token);
+            // return response()->json([
+            //     'request' => $request->all(),
+            //     'user' => $user,
+            //     'data_db' => $data_db,
+            //     'session' => session('auth_token'),
+            // ], 200);
             $data_identitias_karyawan = self::validatedAuth($token);
             $user->data_identitias_karyawan = $data_identitias_karyawan;
 
-
-            $data = $user;
-            $request->session()->put('auth_token', $token);
+            // Simpan data user ke session
+            $data_db['FILTER_APP']['USER'] = $user;
+            Session::put('auth_token', $token);
+            Session::put('FILTER_APP', $data_db['FILTER_APP'] ?? []);
         }
-
-        // dd($_SESSION);
 
         return response()->json([
             'status' => $isValid ? 'success' : 'error',
             'message' => $message,
             'data' => $data,
+            'FILTER_APP' => $data_db['FILTER_APP'] ?? [],
+            'auth_token' => $token,
             'request' => $request->all(),
-            // 'session' => $request->session()->all(),
-            'auth_token' => $token
+            'session' => session('auth_token'),
         ], 200); // <- selalu 200
     }
 

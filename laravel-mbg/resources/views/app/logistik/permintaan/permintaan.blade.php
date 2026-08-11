@@ -257,4 +257,5 @@
 @endsection()
 
 @section('js_code')
+
 @endsection()

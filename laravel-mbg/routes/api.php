@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\API\DatabaseTableController;
+use App\Http\Controllers\Api\FileController;
+use App\Http\Controllers\Api\FolderController;
 use App\Http\Controllers\API\GroupFormController;
 use App\Http\Controllers\DatabaseController;
 use App\Http\Controllers\DatabaseDataController;
@@ -29,7 +31,7 @@ Route::prefix('/database')->group(function () {
     Route::post('/delete-data-form', [DatabaseController::class, 'destroy']);
 
     Route::prefix('/menu')->group(function () {
-        Route::post('/getdatadatatable',  [GroupFormController::class, 'getDatadataTable']);
+        Route::post('/getdatadatatable',  [DatabaseController::class, 'getDatadataTable']);
         Route::post('/storedatadatatable',  [GroupFormController::class, 'storeDatadataTable']);
         Route::post('/deletedatadatatable',  [GroupFormController::class, 'deleteDatadataTable']);
     });
@@ -52,3 +54,15 @@ Route::prefix('/user')->group(function () {
     Route::post('/update',  [UserController::class, 'Update']);
     Route::post('/update-user',  [UserController::class, 'UpdateUser']);
 });
+
+
+
+
+// ========================================
+// File Manager API Routes
+// ========================================
+Route::apiResource('folders', FolderController::class)->only(['index', 'show', 'store', 'destroy']);
+Route::apiResource('files', FileController::class)->only(['store', 'destroy']);
+
+// Endpoint custom untuk isi folder
+Route::get('folders/{id}/contents', [FolderController::class, 'show']);

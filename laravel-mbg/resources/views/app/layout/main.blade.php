@@ -109,9 +109,7 @@
 
     <div class="main-container">
         <div class="xs-pd-20-10 pd-ltr-20">
-            <div class="title pb-20">
-                <h2 class="header-title h3 mb-0">Loading to APP</h2>
-            </div>
+            
             <div class="body-content" style="display: none;">
                 @yield('content')
             </div>
@@ -159,7 +157,7 @@
 <script src="/assets/src/plugins/sweetalert2/sweet-alert.init.js"></script>
 
 @include('app.layout.JSUIFunction')
-@include('app.layout.JSfunctions')
+{{-- @include('app.layout.JSfunctions') --}}
 
 {{-- __SRC Other JS --}}
 
@@ -199,7 +197,6 @@
 {{-- ___SRC Other JS --}}
 <script>
     let filterApp = @json(session('FILTER_APP'));
-    console.log('Database initializing...');
 
     function readyDB(callback) {
         if (window.DB) {
@@ -215,12 +212,12 @@
         }
     }
 
+
     getReadyDatabase().then(function(db) {
         window.DB = db; // Simpan global
 
         initUI();
         filterApp = @json(session('FILTER_APP'));
-
         $('.body-content').show();
         $('.loading').hide();
     });
