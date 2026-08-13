@@ -382,13 +382,13 @@
                     </li>
                 </ul>
             </div>
-            
+
             <h5 hidden class="pd-20 h5 mb-0">FEATURE</h5>
             <div hidden class="latest-post">
                 <ul>
                     <li>
                         <div class="row">
-                            
+
                             <div class="col-3 text-center">
                                 <img width="30px" src="assets/vendors/logo/slip-logo.png" alt="">
                                 <h4>
@@ -427,7 +427,8 @@
                                 <h4>
                                     <a href="/my-slip">mail PT.MB</a>
                                 </h4>
-                            </div><div class="col-3 text-center">
+                            </div>
+                            <div class="col-3 text-center">
                                 <img width="30px" src="assets/vendors/logo/slip-logo.png" alt="">
                                 <h4>
                                     <a href="/my-slip">mail lama</a>
@@ -436,6 +437,23 @@
                         </div>
                     </li>
                 </ul>
+            </div>
+        </div>
+
+        <!-- Card Grafik Water Level -->
+        <div class="col-md-4 ml-20 col-sm-12 row ">
+            <div class="col-12">
+                <div class="card-box mb-30 pd-20">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="h5 mb-0">
+                            <i class="bi bi-droplet text-primary me-2"></i>Grafik Tinggi Muka Air
+                        </h5>
+                        <span class="text-muted small">Data dari sensor</span>
+                    </div>
+                    <div style="height: 300px;">
+                        <canvas id="waterLevelChart"></canvas>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -469,7 +487,6 @@
 
 @section('js_code')
     <script>
-
         function hitungMasaKerja(tanggalMulaiStr) {
             // Parsing string YYYY-MM-DD
             const parts = tanggalMulaiStr.split('-').map(Number);
@@ -510,7 +527,7 @@
         }
 
         $(document).ready(function() {
-            console.log('ready function :', db);   
+            console.log('ready function :', db);
             const tglMulai = db['FILTER_APP']['PROFILE']['TANGGAL-MASUK-KERJA--TMK-']['value_data'];
             const hasil = hitungMasaKerja(tglMulai);
 
@@ -532,6 +549,94 @@
             $('.kontrak-kerja')
                 .text(teksKontrak)
                 .fadeIn(500);
+
+            loadWaterLevel();
         });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        async function loadWaterLevel() {
+            try {
+                const response = await fetch('/feature/water-level/data');
+                if (!response.ok) throw new Error('Gagal mengambil data');
+                const data = await response.json();
+
+                // Urutkan data berdasarkan tanggal & jam (ascending)
+                data.sort((a, b) => (a.tanggal + a.jam).localeCompare(b.tanggal + b.jam));
+
+                // Simpan data terakhir per lokasi per tanggal
+                const mapByDate = {};
+                data.forEach(d => {
+                    if (!mapByDate[d.tanggal]) mapByDate[d.tanggal] = {
+                        'PT. SRI': null,
+                        'PT. MB': null
+                    };
+                    // overwrite dengan nilai terbaru
+                    mapByDate[d.tanggal][d.lokasi] = d.tinggi;
+                });
+
+                const tanggalList = Object.keys(mapByDate).sort();
+                const labels = tanggalList.map(tgl => {
+                    const parts = tgl.split('-'); // asumsi YYYY-MM-DD
+                    return `${parts[2]}/${parts[1]}`; // DD/MM
+                });
+
+                const sriData = tanggalList.map(tgl => mapByDate[tgl]['PT. SRI']);
+                const mbData = tanggalList.map(tgl => mapByDate[tgl]['PT. MB']);
+
+                const ctx = document.getElementById('waterLevelChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                                label: 'PT. SRI',
+                                data: sriData,
+                                borderColor: '#0d6efd',
+                                backgroundColor: 'rgba(13,110,253,0.1)',
+                                fill: true,
+                                tension: 0.3,
+                                spanGaps: true
+                            },
+                            {
+                                label: 'PT. MB',
+                                data: mbData,
+                                borderColor: '#dc3545',
+                                backgroundColor: 'rgba(220,53,69,0.1)',
+                                fill: true,
+                                tension: 0.3,
+                                spanGaps: true
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            },
+                            x: {
+                                ticks: {
+                                    maxRotation: 0,
+                                    autoSkip: true,
+                                    maxTicksLimit: 10
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading water level chart:', error);
+                document.getElementById('waterLevelChart').parentElement.innerHTML =
+                    '<div class="text-center text-muted py-5">Gagal memuat data tinggi muka air.</div>';
+            }
+        }
     </script>
 @endsection()
