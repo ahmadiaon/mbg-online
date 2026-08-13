@@ -344,7 +344,7 @@
     <script>
         // JS Get Data
         const masterData = new MasterData();
-
+        let arrDataSlip = {};
 
 
         (async function() {
@@ -355,6 +355,10 @@
                     years,
                     monthsByYear
                 } = processSlipData(data);
+
+                data.forEach(slips => {
+                    arrDataSlip[slips.code_file] = slips;
+                });
                 conLog('data return', data);
                 conLog('processedData', monthsByYear);
                 years.forEach(year => {
@@ -581,11 +585,14 @@
             // URL file (relatif dari root web)
             const dummyUrl = '/file/slips/ffc11d3c-d8de-4c18-88d0-f8afaaa7dd75.pdf';
             // Untuk produksi: sesuaikan dengan endpoint Anda
+            let dataSlip = arrDataSlip[`${db['FILTER_APP']['USER']['nrp']}-${selectedYear}-${selectedMonth}`]['original_file'];
+            let url = `http://assets.mitrabaritogroup.com/uploads/slips/`+`${dataSlip}`;
+
 
             btnViewSlip.disabled = true;
             btnViewSlip.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Memuat...';
 
-            await loadPDF(dummyUrl);
+            await loadPDF(url);
 
             btnViewSlip.disabled = false;
             btnViewSlip.innerHTML = '<i class="bi bi-search me-2"></i>Lihat Slip';

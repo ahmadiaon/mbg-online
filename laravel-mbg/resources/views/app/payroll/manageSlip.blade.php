@@ -291,7 +291,7 @@
 
             // Hapus ekstensi .pdf jika ada (untuk memastikan path bersih)
             originalFile = originalFile.replace(/\.pdf$/i, '');
-            const fileUrl = `/file/slips/${originalFile}.pdf`;
+            const fileUrl = `http://assets.mitrabaritogroup.com/uploads/slips/${originalFile}.pdf`;
             conLog('fileUrl', fileUrl);
             // Tampilkan modal PDF
             showPdfModal(fileUrl, `Slip-${code_data}.pdf`);

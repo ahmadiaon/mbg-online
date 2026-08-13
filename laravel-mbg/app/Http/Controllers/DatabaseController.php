@@ -17,6 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -27,6 +28,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Reader\Exception;
+use Illuminate\Support\Facades\Http;
 
 class DatabaseController extends Controller
 {
@@ -454,7 +456,7 @@ class DatabaseController extends Controller
 
     public function importDatatable(Request $request)
     {
-        $session_data   = session('DATABASE');
+        $session_data   = Cache::get('db_role_4');
         $database_tables = $session_data['database_tables'];
         $the_file       = $request->file('uploaded_file');
 
@@ -809,7 +811,11 @@ class DatabaseController extends Controller
         $abjads = ResponseFormatter::abjads();
         $database_datatable = $request->code_table;
 
-        $session_data = session('DATABASE');
+        $session_data = Cache::get('db_role_4');
+        // return ResponseFormatter::ResponseJson($session_data, 'export database', 200);
+
+
+
         $data_table = $session_data['database_tables'][$database_datatable];
         $isJoin = false;
         if ($data_table['parent_table']) {
@@ -1049,6 +1055,73 @@ class DatabaseController extends Controller
         return ResponseFormatter::ResponseJson($files, 'success', 200);
     }
 
+    public function slipStoreV2(Request $request)
+    {
+        $files_file = $request->file('file');
+
+        $split_year_month = explode(" ", $request['month-year']);
+        $month = ResponseFormatter::monthSort($split_year_month[0]);
+        $year  = $split_year_month[1];
+
+        $files = [];
+
+        // return ResponseFormatter::ResponseJson(, 'success', 200);
+
+        foreach ($files_file as $item_file) {
+            $original_name = $item_file->getClientOriginalName();
+            $extension = $item_file->getClientOriginalExtension();
+            $filenameWithoutExtension = pathinfo($original_name, PATHINFO_FILENAME);
+
+            $employee_uuid = ResponseFormatter::toUUID($filenameWithoutExtension);
+            $new_filename = Str::uuid() . '.' . $extension;
+
+            // === Kirim file ke server assets (Node.js) ===
+            $response = Http::withHeaders([
+                'X-API-Token' => 'secret-token-anda', // atau env('ASSETS_API_TOKEN')
+            ])->attach(
+                'file',
+                file_get_contents($item_file->getPathname()),
+                $new_filename
+            )->post('https://assets.mitrabaritogroup.com/upload', [
+                'filename' => $new_filename,
+                'folder' => 'slips', // folder tujuan di server assets
+            ]);
+
+            if (!$response->successful()) {
+                // Jika salah satu gagal, lemparkan error atau catat
+                return ResponseFormatter::ResponseJson(
+                    ['error' => 'Gagal mengunggah file ke server assets: ' . $item_file->getClientOriginalName()],
+                    'error',
+                    $response->status()
+                );
+            }
+
+            // Ambil URL dari respons (bisa digunakan nanti)
+            $assetUrl = $response->json()['url']; // https://assets.mitrabaritogroup.com/uploads/{$new_filename}
+
+            $code_file = $employee_uuid . '-' . $year . '-' . $month;
+
+            $data = [
+                'nrp'           => $employee_uuid,
+                'code_file'     => $code_file,
+                'year'          => $year,
+                'month'         => $month,
+                'original_file' => $new_filename,   // Simpan nama file yang tersimpan di assets server
+                // Jika ingin menyimpan URL lengkap, tambahkan field baru di database
+                // 'asset_url'  => $assetUrl,
+            ];
+
+            Slip::updateOrCreate(
+                ['code_file' => $code_file],
+                $data
+            );
+
+            $files[] = $data;
+        }
+
+        return ResponseFormatter::ResponseJson($files, 'success', 200);
+    }
+
     public function showSlip($filename)
     {
         // Lokasi file sebenarnya (pilih salah satu)
@@ -1067,7 +1140,4 @@ class DatabaseController extends Controller
             'Content-Disposition' => 'inline; filename="' . $filename . '"'
         ]);
     }
-
-
-
 }

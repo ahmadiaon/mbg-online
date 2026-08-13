@@ -34,5 +34,10 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    
+    'assets' => [
+        'url'   => env('ASSETS_API_URL'),
+        'token' => env('ASSETS_API_TOKEN'),
+    ],
 
 ];

@@ -11,6 +11,10 @@
     <div class="menu-block customscroll">
         <div class="sidebar-menu">
             <ul id="accordion-menu">
+                <li>
+                    <a href="/" class="dropdown-toggle no-arrow">
+                        <span class="micon bi-house-fill"></span><span class="mtext">Dashboard</span>
+                    </a>
 
 
                 @if (session('FILTER_APP')['USER']['role'] > 1)

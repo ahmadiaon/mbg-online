@@ -81,7 +81,7 @@ Route::middleware(['auth.login'])->group(function () {
 
     Route::prefix('/payroll')->group(function () {
         Route::get('/slip', [GeneralRouteController::class, 'managePayrollSlip']);
-        Route::post('/slip', [DatabaseController::class, 'slipStore']);
+        Route::post('/slip', [DatabaseController::class, 'slipStoreV2']);
     });
 
     Route::prefix('/manage')->group(function () {
