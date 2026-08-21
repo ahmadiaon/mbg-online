@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Recruitment - MBG</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="" name="keywords">
+    <meta content="" name="description">
+
+    <!-- Favicon -->
+    <link href="img/logo.png" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500&family=Jost:wght@500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="lib/animate/animate.min.css" rel="stylesheet">
+    <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="css/style.css" rel="stylesheet">
+</head>
+
+<body data-bs-spy="" data-bs-target=".navbar" data-bs-offset="51">
+    <div class="container-xxl bg-white p-0">
+        <!-- Spinner Start -->
+        <div id="spinner"
+            class="show bg-white position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
+            <div class="spinner-grow text-primary" style="width: 3rem; height: 3rem;" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
+        <!-- Spinner End -->
+
+
+        <!-- Navbar & Hero Start -->
+        <div class="container-xxl position-relative p-0" id="home">
+            <nav class="navbar navbar-expand-lg navbar-light px-4 px-lg-5 py-3 py-lg-0">
+                <a href="#" class="navbar-brand p-0">
+                    <img src="img/logo.png" alt="Mitra Barito Group">
+                    <!-- <img src="img/logo.png" alt="Logo"> -->
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
+                    <span class="fa fa-bars"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarCollapse">
+                    <div class="navbar-nav mx-auto py-0">
+                        <a href="#" class="nav-item nav-link active">Home</a>
+                    </div>
+                    <a href="#form-lamaran"
+                        class="btn btn-primary-gradient rounded-pill py-2 px-4 ms-3 d-none d-lg-block">Lamar
+                        Sekarang</a>
+                </div>
+            </nav>
+
+            <div class="container-xxl bg-primary hero-header">
+                <div class="container px-lg-5">
+                    <div class="row g-5">
+                        <div class="col-lg-8 text-center text-lg-start">
+                            <h1 class="text-white mb-4 animated slideInDown">Changing The Future Together</h1>
+                            <p class="text-white pb-3 animated slideInDown"> Sebagai perusahaan yang berdedikasi pada
+                                industri ini, kami berkomitmen untuk menyediakan layanan berkualitas tinggi dan
+                                berkelanjutan. Dengan pengalaman dan keahlian yang luas, kami memastikan setiap tahap
+                                operasi berjalan efisien dan aman, mendukung kebutuhan industri pertambangan batu bara
+                                dengan standar tertinggi</p>
+                            <a href="#form-lamaran"
+                                class="btn btn-primary-gradient py-sm-3 px-4 px-sm-5 rounded-pill me-3 animated slideInLeft">Lamaran</a>
+                        </div>
+                        <div class="col-lg-4 d-flex justify-content-center justify-content-lg-end wow fadeInUp"
+                            data-wow-delay="0.3s">
+                            <div class="owl-carousel screenshot-carousel">
+                                <img class="img-fluid" src="img/1.JPG" alt="">
+                                <img class="img-fluid" src="img/4.png" alt="">
+                                <img class="img-fluid" src="img/3.jpg" alt="">
+                                <img class="img-fluid" src="img/5.png" alt="">
+                                <img class="img-fluid" src="img/2.png" alt="">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Navbar & Hero End -->
+
+        <!-- Contact Start -->
+        <div class="container-xxl py-5" id="form-lamaran">
+            <div class="container py-5 px-lg-5">
+                <div class="text-center wow fadeInUp" data-wow-delay="0.1s">
+                    <h5 class="text-primary-gradient fw-medium">Buat Lamaran Pekerjaan</h5>
+                    <h1 class="mb-5">Bergabung Sekarang!</h1>
+                </div>
+                <div class="row justify-content-center">
+                    <div class="col-lg-9">
+                        <div class="wow fadeInUp" data-wow-delay="0.3s">
+                            <p class="text-center mb-4">Silahkan isi data diri dan kirimkan lamaran terbaik anda. *Tanpa
+                                biaya</p>
+                            <form id="form-store" action="/api/recruitment/store" method="post"
+                                enctype="multipart/form-data">
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <div class="form-floating">
+                                            <input required type="text" class="form-control" name="nik_ktp" id="nik_ktp"
+                                                placeholder="nik_ktp">
+                                            <label for="nik_ktp">NIK KTP</label>
+                                        </div>
+                                    </div>
+
+                                    <div hidden id="data-lamaran-found" class="col-12">
+                                        <p class="mb-4">Lamaran ditemukan, pilih opsi dibawah ini</p>
+                                        <a href="#status-lamaran">
+                                            <button class="btn btn-primary-gradient rounded-pill py-3 px-5"
+                                                type="button">Cek
+                                            </button>
+                                        </a>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input required type="text" class="form-control" name="full_name"
+                                                id="full_name" placeholder="Your Name">
+                                            <label for="full_name">Nama Lengkap *</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control" name="phone_number"
+                                                id="phone_number" placeholder="Your Name">
+                                            <label for="phone_number">No HP</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="email" name="email" class="form-control" id="email"
+                                                placeholder="Your Email">
+                                            <label for="email">Email</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <select onchange="provinsiChanged()" style="width: 100%;" name="provinsi"
+                                                id="provinsi" class="form-control">
+                                                <option value="">Pilih Provinsi</option>
+
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <select onchange="kabupatenChanged()" style="width: 100%;" name="kabupaten"
+                                                id="kabupaten" class="form-control">
+                                                <option value="">Pilih Kabupaten</option>
+
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <select style="width: 100%;" name="kecamatan" id="kecamatan"
+                                                class="form-control">
+                                                <option value="">Pilih Kecamatan</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="form-floating">
+                                            <textarea class="form-control" placeholder="Leave a message here"
+                                                id="address_description" name="address_description"
+                                                style="height: 150px"></textarea>
+                                            <label for="address_description">Alamat</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="form-floating">
+                                            <select style="width: 100%;" name="position" id="position"
+                                                class="form-control">
+                                                <option value="">Pilih Posisi</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="form-floating">
+                                            <input type="file" class="form-control" name="uploaded_file" accept=".pdf"
+                                                id="uploaded_file" placeholder="uploaded_file">
+                                            <label for="uploaded_file">File CV (1 file .pdf tergabung ) *</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 text-center">
+                                        <button id="submit-button"
+                                            class="btn btn-primary-gradient rounded-pill py-3 px-5" type="button">Kirim
+                                            Lamaran</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Contact End -->
+
+
+        <!-- Pricing Start -->
+        <div class="container-xxl py-5" id="status-lamaran">
+            <div class="container py-5 px-lg-5">
+                <div class="text-center wow fadeInUp" data-wow-delay="0.1s">
+                    <h5 class="text-primary-gradient fw-medium">STATUS</h5>
+                    <h1 class="mb-5">Daftar Lamaran</h1>
+                </div>
+                <div class="tab-class text-center pricing wow fadeInUp" id="list-lamaran" data-wow-delay="0.1s">
+                    <!-- lamaran kosong -->
+                    <div id="lamaran-kosong" class="tab-content text-start">
+                        <div id="tab-1" class="tab-pane fade show p-0 active">
+                            <div class="row g-4">
+                                <div class="col-lg-4">
+                                    <div class="bg-light rounded">
+                                        <div class="border-bottom p-4 mb-4">
+                                            <h4 class="text-primary-gradient mb-1">Status</h4>
+                                            <span>Anda belum memiliki lamaran</span>
+                                        </div>
+                                        <div class="p-4 pt-0">
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- lamaran kosong -->
+
+
+                </div>
+            </div>
+        </div>
+        <!-- Pricing End -->
+
+
+        <!-- Footer Start -->
+        <div class="container-fluid bg-primary text-light footer wow fadeIn" data-wow-delay="0.1s">
+            <div class="container px-lg-5">
+                <div class="copyright">
+                    <div class="row">
+                        <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">©Copyright 2025 All right reserved.
+                            <a class="border-bottom" href="https://mitrabarito.com">Mitra Barito Group</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Footer End -->
+
+
+        <!-- Back to Top -->
+        <a href="#" class="btn btn-lg btn-lg-square back-to-top pt-2"><i class="bi bi-arrow-up text-white"></i></a>
+    </div>
+
+    <div class="modal fade" id="loading-modal" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <br>
+                <br>
+                <div class="modal-body text-center">
+                    <div class="spinner-grow text-primary" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <div class="spinner-grow text-secondary" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <div class="spinner-grow text-success" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <div class="spinner-grow text-danger" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <div class="spinner-grow text-warning" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <div class="spinner-grow text-info" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <div class="spinner-grow text-light" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <div class="spinner-grow text-dark" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                </div>
+                <br>
+                <br>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="success-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
+        aria-hidden="true">
+        <div class="modal-dialog modal modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-body text-center font-18">
+                    <h3 class="mb-20">Data Tersimpan</h3>
+                    <div class="mb-30 text-center">
+                        <i class="icon-copy bi bi-check2"></i>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-primary" onclick="stopLoading()" data-dismiss="modal">
+                        Done
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="lib/wow/wow.min.js"></script>
+    <script src="lib/easing/easing.min.js"></script>
+    <script src="lib/waypoints/waypoints.min.js"></script>
+    <script src="lib/counterup/counterup.min.js"></script>
+    <script src="lib/owlcarousel/owl.carousel.min.js"></script>
+
+    <!-- Template Javascript -->
+    <script src="js/main.js"></script>
+
+    <script> // CEK proses lamaran
+        $(document).ready(function () {
+            $("#nik_ktp").on("input", function () {
+                var nik = $(this).val();
+
+                if (nik.length >= 14) {
+                    console.log('cek ktp');
+
+                    // Kirim request ke API
+                    $.ajax({
+                        url: link_APP_URL + "api/recruitment/cek-rekruitment", // Ganti dengan URL API yang sesuai
+                        type: "POST",
+                        data: { nik_ktp: nik }, // Data yang dikirim ke API
+                        dataType: "json",
+                        success: function (response) {
+                            console.log(response);
+                            if (response.data.length !== 0) {
+                                $("#data-lamaran-found").removeAttr("hidden");
+                                $('#data-lamaran-found').fadeIn();
+                                $('#lamaran-kosong').remove();
+
+                                console.log('data_jabatan');
+                                console.log(data_jabatan);
+
+                                let data_lamaran_html;
+
+                                (response.data).forEach(element => {
+                                    console.log(element.nik_ktp);
+                                    data_lamaran_html = `
+                                <div class="tab-content text-start">
+                                    <div id="tab-1" class="tab-pane fade show p-0 active">
+                                        <div class="row g-4">
+                                            <div class="col-lg-4">
+                                                <div class="bg-light rounded">
+                                                    <div class="border-bottom p-4 mb-4">
+                                                        <h4 class="text-primary-gradient mb-1">Lamaran 1</h4>
+                                                        <span>Tanggal melamar : ${element.time_propose}</span>
+                                                    </div>
+                                                    <div class="p-4 pt-0">
+                                                        <h1 class="mb-3">
+                                                            ${data_jabatan[element.position]['JABATAN']['value_data']}
+                                                        </h1>
+                                                        <div class="d-flex justify-content-between mb-3"><span>${element.full_name}</span></div>
+                                                        <div class="d-flex justify-content-between mb-3"><span>${element.provinsi}</span></div>
+                                                        <a href="" class="btn btn-primary-gradient rounded-pill py-2 px-4 mt-4">${element.status}</a>
+                                                    </div>
+                                                </div>
+                                            </div>                                
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                `;
+                                    $('#list-lamaran').append(data_lamaran_html);
+                                });
+                            }
+
+                            return false;
+                        },
+                        error: function () {
+                            $("#status").text("⚠️ Terjadi kesalahan saat menghubungi server!").css("color", "orange");
+                        }
+                    });
+                } else {
+                    $("#status").text("").css("color", "");
+                }
+            });
+        });
+    </script>
+
+    <script>
+        let data_provinsi = {};
+        let data_kabupaten = {};
+        let data_kecamatan = {};
+        let data_jabatan = {};
+
+        let link_APP_URL = 'https://app.mitrabarito.com/';
+
+        const ASSETS_API_URL = 'https://assets.mitrabaritogroup.com/upload';
+        const ASSETS_API_TOKEN = 'secret-token-anda';
+
+
+
+        fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json`)
+            .then(response => response.json())
+            .then(provincies => {
+                provincies.forEach(provinci => {
+                    // console.log(provinci);
+                    data_provinsi[provinci.id] = provinci.name;
+                    $('#provinsi').append(`<option value="${provinci.id}">${provinci.name}</option>`);
+                });
+                console.log(data_provinsi);
+            });
+
+        $.ajax({
+            url: link_APP_URL + 'api/mbg/db/JABATAN',
+            type: "GET",
+            success: function (response) {
+                data_jabatan = response.data.data_tables;
+                console.log("data_jabatan :", data_jabatan);
+
+                Object.values(response.data.data_tables).forEach(element => {
+                    if (element['JABATAN'] === undefined) {
+                        return; // skip jika tidak ada JABATAN
+                    }
+                    $('#position').append(`<option value="${element['JABATAN']['code_data']}">${element['JABATAN']['value_data']}</option>`);
+                });
+            },
+            error: function (response) {
+                console.log('errr');
+            }
+        });
+
+        function stopLoading() {
+            $('.modal').modal('hide');
+        }
+
+        function provinsiChanged() { //untuk mengubah kabupaten
+            $('#kabupaten').empty();
+            let id_provincies = $(`#provinsi`).val();
+            console.log(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${id_provincies}.json`);
+            fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${id_provincies}.json`)
+                .then(response => response.json())
+                .then(regencies => {
+
+                    regencies.forEach(kabupaten => {
+
+                        data_kabupaten[kabupaten.id] = kabupaten.name;
+                        $('#kabupaten').append(`<option value="${kabupaten.id}">${kabupaten.name}</option>`);
+                    });
+                    console.log(regencies[0]);
+                    $('#kabupaten').val(regencies[2].id);
+                    kabupatenChanged();
+                });
+
+
+        }
+
+
+
+        function kabupatenChanged() { //untuk mengubah kecamatan
+            $('#kecamatan').empty();
+            let id_kabupaten = $(`#kabupaten`).val();
+            fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/districts/${id_kabupaten}.json`)
+                .then(response => response.json())
+                .then(regencies => {
+                    regencies.forEach(kecamatan => {
+
+                        data_kecamatan[kecamatan.id] = kecamatan.name;
+                        $('#kecamatan').append(`<option value="${kecamatan.id}">${kecamatan.name}</option>`);
+                    });
+                });
+        }
+
+    </script>
+
+    <script> //STORE data
+        async function storeData() {
+            const form = document.getElementById('form-store');
+            const formData = new FormData(form);
+
+            const fileInput = document.getElementById('uploaded_file');
+            if (fileInput.files.length === 0) {
+                alert('File CV wajib diunggah!');
+                return;
+            }
+
+            const originalFile = fileInput.files[0];
+            const nik = $('#nik_ktp').val().trim();
+
+            // ✅ File yang akan diunggah ke assets server dengan nama NIK KTP
+            const fileExt = originalFile.name.split('.').pop().toLowerCase();
+            const renamedFile = new File([originalFile], `${nik}.${fileExt}`, {
+                type: originalFile.type
+            });
+
+            // FormData untuk upload ke assets server
+            const assetFormData = new FormData();
+            assetFormData.append('filename', renamedFile.name);  // penting: taruh sebelum 'file'
+            assetFormData.append('folder', 'recruitments');
+            assetFormData.append('file', renamedFile);
+
+            $('#loading-modal').modal('show');
+
+            try {
+                // 1. Upload file ke assets.mitrabaritogroup.com
+                const uploadRes = await fetch(ASSETS_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'X-API-Token': ASSETS_API_TOKEN
+                    },
+                    body: assetFormData
+                });
+
+                if (!uploadRes.ok) throw new Error('Upload file gagal, status: ' + uploadRes.status);
+
+                const uploadResult = await uploadRes.json();
+                // uploadResult.url bisa berisi URL lengkap, tapi kita hanya butuh nama file
+                // Contoh: https://assets.mitrabaritogroup.com/uploads/recruitments/6303050503870004.pdf
+
+                // ✅ Ambil nama file saja (bagian setelah slash terakhir)
+                const uploadedFileName = uploadResult.url.split('/').pop(); // "6303050503870004.pdf"
+
+                // 2. Kirim data lamaran + nama file ke Laravel
+                formData.delete('uploaded_file');
+                formData.append('uploaded_file', uploadedFileName); // kirim nama file saja
+
+                formData.append('text_provinsi', data_provinsi[$('#provinsi').val()] || '');
+                formData.append('text_kabupaten', data_kabupaten[$('#kabupaten').val()] || '');
+                formData.append('text_kecamatan', data_kecamatan[$('#kecamatan').val()] || '');
+
+                const storeRes = await fetch(link_APP_URL + 'api/recruitment/store', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!storeRes.ok) throw new Error('Gagal menyimpan data lamaran');
+
+                const result = await storeRes.json();
+                console.log('Response store:', result);
+
+                $('#loading-modal').modal('hide');
+                $('#success-modal').modal('show');
+            } catch (error) {
+                console.error(error);
+                $('#loading-modal').modal('hide');
+                alert('Terjadi kesalahan: ' + error.message);
+            }
+        }
+    </script>
+
+    <script> // VALIDASI form
+        document.getElementById('submit-button').addEventListener('click', function () {
+            let isValid = true;
+            const requiredFields = [
+                'nik_ktp', 'full_name', 'phone_number', 'email', 'provinsi', 'kabupaten', 'kecamatan', 'address_description', 'position', 'uploaded_file'
+            ];
+
+            requiredFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) {
+                    if (!field.value.trim()) {
+                        isValid = false;
+                        field.style.border = "2px solid red"; // Tambah border merah
+                    } else {
+                        field.style.border = ""; // Hapus border merah jika sudah diisi
+                    }
+                }
+            });
+            console.log('isValid', isValid);
+
+            if (isValid) {
+                storeData();
+                // document.getElementById('form-store').submit();
+            }
+        });
+    </script>
+
+</body>
+
+</html>

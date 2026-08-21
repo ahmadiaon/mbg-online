@@ -53,125 +53,10 @@
 @endsection()
 
 @section('js_code')
-    <script src="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+    
 
-    <script>
-        function showPdfModal(url, filename) {
-            // Hapus modal sebelumnya jika ada
-            const oldModal = document.getElementById('pdfModal');
-            if (oldModal) oldModal.remove();
-
-            const modalId = 'pdfModal-' + Date.now();
-            const modalHtml = `
-                    <div class="modal fade" id="${modalId}" tabindex="-1">
-                    <div class="modal-dialog modal-xl modal-dialog-centered">
-                        <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">${filename || 'Preview PDF'}</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body bg-light" style="overflow:auto; -webkit-overflow-scrolling:touch;">
-                            <canvas id="pdfCanvas-${modalId}" style="display:block; margin:0 auto;"></canvas>
-                        </div>
-                        <div class="modal-footer">
-                            <div class="btn-group btn-group-sm me-auto">
-                            <button class="btn btn-outline-secondary" id="zoomin-${modalId}" title="Perbesar"><i class="bi bi-zoom-in"></i></button>
-                            <button class="btn btn-outline-secondary" id="zoomout-${modalId}" title="Perkecil"><i class="bi bi-zoom-out"></i></button>
-                            <button class="btn btn-outline-secondary" id="fitwidth-${modalId}" title="Sesuaikan Lebar"><i class="bi bi-arrows-fullscreen"></i></button>
-                            </div>
-                            <a class="btn btn-outline-secondary" id="download-${modalId}" href="${url}" download="${filename}"><i class="bi bi-download"></i></a>
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                        </div>
-                        </div>
-                    </div>
-                    </div>`;
-
-            document.body.insertAdjacentHTML('beforeend', modalHtml);
-
-            const modalEl = document.getElementById(modalId);
-            const modal = new bootstrap.Modal(modalEl);
-            modal.show();
-
-            const canvas = document.getElementById(`pdfCanvas-${modalId}`);
-            const btnZoomIn = document.getElementById(`zoomin-${modalId}`);
-            const btnZoomOut = document.getElementById(`zoomout-${modalId}`);
-            const btnFitWidth = document.getElementById(`fitwidth-${modalId}`);
-
-            let pdfDoc = null;
-            let currentPage = 1;
-            let currentScale = 1.5;
-
-            async function renderPage(pageNum) {
-                if (!pdfDoc) return;
-                const page = await pdfDoc.getPage(pageNum);
-                const viewport = page.getViewport({
-                    scale: currentScale
-                });
-                canvas.width = viewport.width;
-                canvas.height = viewport.height;
-                canvas.style.width = viewport.width + 'px';
-                canvas.style.height = viewport.height + 'px';
-                const ctx = canvas.getContext('2d');
-                await page.render({
-                    canvasContext: ctx,
-                    viewport
-                }).promise;
-            }
-
-            async function loadPDF(pdfUrl) {
-                try {
-                    pdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
-                    // Fit width awal
-                    const page = await pdfDoc.getPage(1);
-                    const containerWidth = canvas.parentElement.clientWidth;
-                    const viewport = page.getViewport({
-                        scale: 1
-                    });
-                    currentScale = containerWidth / viewport.width;
-                    await renderPage(1);
-                } catch (err) {
-                    console.error(err);
-                    alert('Gagal memuat PDF.');
-                    modal.hide();
-                }
-            }
-
-            btnZoomIn.addEventListener('click', async () => {
-                if (!pdfDoc) return;
-                currentScale += 0.25;
-                await renderPage(currentPage);
-            });
-
-            btnZoomOut.addEventListener('click', async () => {
-                if (!pdfDoc) return;
-                if (currentScale > 0.5) {
-                    currentScale -= 0.25;
-                    await renderPage(currentPage);
-                }
-            });
-
-            btnFitWidth.addEventListener('click', async () => {
-                if (!pdfDoc) return;
-                const page = await pdfDoc.getPage(currentPage);
-                const containerWidth = canvas.parentElement.clientWidth;
-                const viewport = page.getViewport({
-                    scale: 1
-                });
-                currentScale = containerWidth / viewport.width;
-                await renderPage(currentPage);
-            });
-
-            modalEl.addEventListener('hidden.bs.modal', () => {
-                modalEl.remove();
-                pdfDoc = null;
-            });
-
-            loadPDF(url);
-        }
-    </script>
     <script>
         const masterData = new MasterData();
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
 
         let arrParameter = {
             tableId: 'slips',
@@ -181,6 +66,7 @@
             staticName: null,
             isDeleteAction: false,
         };
+
         (async function() {
             try {
                 const result = await CacheManager.getCache('db_role_4', null, null);
@@ -241,8 +127,6 @@
                     }
                 }
 
-
-
                 GROUP_DATA = 'database_tables';
 
                 templateDataTable['data'] = data;
@@ -255,7 +139,6 @@
                 console.error('Gagal mengambil data:', error);
             }
         })();
-
 
         function dataShow(tableId, code_data, index) {
             console.log("======== FUNCTION dataShow", code_data);
@@ -275,54 +158,25 @@
 
             record = dataSource[index]; // Ambil record berdasarkan index
 
-
             if (!record) {
                 alert('Data tidak ditemukan.');
                 return;
             }
 
             // Ambil nama file asli dari record
-            // Sesuaikan dengan struktur data: bisa record.original_file?.value_data atau record.original_file
             let originalFile = record.original_file?.value_data || record.original_file;
             if (!originalFile) {
                 alert('File slip tidak tersedia.');
                 return;
             }
 
-            // Hapus ekstensi .pdf jika ada (untuk memastikan path bersih)
+            // Hapus ekstensi .pdf jika ada
             originalFile = originalFile.replace(/\.pdf$/i, '');
-            const fileUrl = `http://assets.mitrabaritogroup.com/uploads/slips/${originalFile}.pdf`;
+            const fileUrl = `https://assets.mitrabaritogroup.com/uploads/slips/${originalFile}.pdf`;
             conLog('fileUrl', fileUrl);
-            // Tampilkan modal PDF
-            showPdfModal(fileUrl, `Slip-${code_data}.pdf`);
-        }
 
-        async function editStoreUser() {
-            startLoading();
-            let _token = $('meta[name="csrf-token"]').attr('content');
-            $.ajax({
-                url: '/api/user/update-user',
-                type: "POST",
-                async: false,
-                data: {
-                    _token: $('meta[name="csrf-token"]').attr('content'),
-                    nrp: $(`#NRP`).val(),
-                    nik_ktp: $(`#nik_ktp`).val()
-                },
-                success: function(response) {
-                    conLog('response', response)
-
-                    stopLoading();
-                    showModalSuccess();
-                },
-                error: function(response) {
-                    conLog('error', response)
-                    //alertModal()
-                },
-                done: function() {
-                    stopLoading();
-                }
-            });
+            // Tampilkan modal PDF dengan parameter originalFile
+            showPdfModal(fileUrl, `Slip-${code_data}.pdf`, originalFile);
         }
     </script>
 
@@ -330,8 +184,7 @@
         async function uploadFiles() {
             var fileInput = document.getElementById('fileInput');
             var files = fileInput.files;
-            var maxSize = 4 * 1024 * 1024; // 20 MB
-            var currentSize = 0;
+            var maxSize = 4 * 1024 * 1024; // 4 MB per file (sesuaikan)
             $('#successMessage').hide();
             startLoading();
 
@@ -341,7 +194,6 @@
                 var csrfToken = document.head.querySelector('meta[name="csrf-token"]').content;
                 formData.append('_token', csrfToken);
                 formData.append('file[]', file);
-                // formData.append('file', file);
                 formData.append('month-year', $(`#month-year`).val());
                 await $.ajax({
                     url: '/payroll/slip',
@@ -349,7 +201,7 @@
                     data: formData,
                     success: function(response) {
                         let slips = response.data;
-                        CL(i);
+                        conLog('upload success', slips);
                     },
                     contentType: false,
                     processData: false,
@@ -359,4 +211,4 @@
             stopLoading();
         }
     </script>
-@endsection()
+@endsection

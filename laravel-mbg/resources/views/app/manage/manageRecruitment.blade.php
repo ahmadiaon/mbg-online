@@ -117,149 +117,145 @@
 
 @section('js_code')
     <script>
-        readyDB(function(db) {
+        const masterData = new MasterData();
+        let arrData = {};
+        let arrParameter = {
+            tableId: 'recruitments',
+            tableDataDetails: {},
+            datasetTable: null,
+            paggingDatatable: true,
+            staticName: null,
+            isDeleteAction: false
+        };
 
-            // DATA TABLE
-            let templateDataTable = {
-                code_table: "recruitments",
-                parent_table: null,
-                primary_table: "nik_ktp",
-                menu_table: "STAND-ALONE",
-                description_table: "Recruitment",
-                fields: {
-                    'nik_ktp': {
-                        sort_field: '1',
-                        code_field: 'nik_ktp',
-                        description_field: 'NIK KTP',
-                        visibility_data_field: 'show',
-                        data_source: {
-                            "field_get_data_source": "NRP",
-                            "code_data_source": "PERUSAHAAN-DIREKTUR",
-                            "table_data_source": "KARYAWAN"
+        (async function() {
+            try {
+                const result = await CacheManager.getCache('db_role_4', null, null);
+                db = result.data.cached;
+                const data = await masterData.getDatadataTable('recruitments', null, null);
+                // console.log('data');
+                // console.log(data);
+
+                data.forEach(iData => {
+                    arrData[iData.nik_ktp] = iData;
+                });
+                let templateDataTable = {
+                    code_table: "recruitments",
+                    parent_table: null,
+                    primary_table: "nik_ktp",
+                    menu_table: "STAND-ALONE",
+                    description_table: "Recruitment",
+                    fields: {
+                        'nik_ktp': {
+                            sort_field: '1',
+                            code_field: 'nik_ktp',
+                            description_field: 'NIK KTP',
+                            visibility_data_field: 'show',
+                            type_data_field: 'TEXT',
                         },
-                        type_data_field: 'DARI-TABEL',
-                    },
-                    'full_name': {
-                        sort_field: '2',
-                        code_field: 'full_name',
-                        description_field: 'Full Name',
-                        visibility_data_field: 'show',
-                        type_data_field: 'TEXT',
-                    },
-                    'address_description': {
-                        sort_field: '3',
-                        code_field: 'address_description',
-                        description_field: 'Address Description',
-                        visibility_data_field: 'hidden',
-                        type_data_field: 'TEXT',
-                    },
-                    'provinsi': {
-                        sort_field: '4',
-                        code_field: 'provinsi',
-                        description_field: 'Provinsi',
-                        visibility_data_field: 'show',
-                        type_data_field: 'TEXT',
-                    },
-                    'kabupaten': {
-                        sort_field: '5',
-                        code_field: 'kabupaten',
-                        description_field: 'Kabupaten',
-                        visibility_data_field: 'hidden',
-                        type_data_field: 'TEXT',
-                    },
-                    'kecamatan': {
-                        sort_field: '6',
-                        code_field: 'kecamatan',
-                        description_field: 'Kecamatan',
-                        visibility_data_field: 'hidden',
-                        type_data_field: 'TEXT',
-                    },
-                    'position': {
-                        sort_field: '7',
-                        code_field: 'position',
-                        description_field: 'Position',
-                        visibility_data_field: 'show',
-                        type_data_field: 'DARI-TABEL',
-                        data_source: {
-                            "field_get_data_source": "JABATAN",
-                            "code_data_source": "recruitments-JABATAN",
-                            "table_data_source": "JABATAN"
+                        'full_name': {
+                            sort_field: '2',
+                            code_field: 'full_name',
+                            description_field: 'Full Name',
+                            visibility_data_field: 'show',
+                            type_data_field: 'TEXT',
                         },
-                    },
-                    'file': {
-                        sort_field: '8',
-                        code_field: 'file',
-                        description_field: 'File',
-                        visibility_data_field: 'show',
-                        type_data_field: 'PDF',
-                    },
-                    'email': {
-                        sort_field: '9',
-                        code_field: 'email',
-                        description_field: 'Email',
-                        visibility_data_field: 'hidden',
-                        type_data_field: 'TEXT',
-                    },
-                    'phone_number': {
-                        sort_field: '10',
-                        code_field: 'phone_number',
-                        description_field: 'Phone Number',
-                        visibility_data_field: 'show',
-                        type_data_field: 'TEXT',
-                    },
-                    'status': {
-                        sort_field: '11',
-                        code_field: 'status',
-                        description_field: 'Status',
-                        visibility_data_field: 'show',
-                        type_data_field: 'STATUS-RECRUITMENT',
-                    },
-                    'time_propose': {
-                        sort_field: '0',
-                        code_field: 'time_propose',
-                        description_field: 'Time Propose',
-                        visibility_data_field: 'show',
-                        type_data_field: 'TEXT',
+                        'address_description': {
+                            sort_field: '3',
+                            code_field: 'address_description',
+                            description_field: 'Address Description',
+                            visibility_data_field: 'hidden',
+                            type_data_field: 'TEXT',
+                        },
+                        'provinsi': {
+                            sort_field: '4',
+                            code_field: 'provinsi',
+                            description_field: 'Provinsi',
+                            visibility_data_field: 'show',
+                            type_data_field: 'TEXT',
+                        },
+                        'kabupaten': {
+                            sort_field: '5',
+                            code_field: 'kabupaten',
+                            description_field: 'Kabupaten',
+                            visibility_data_field: 'hidden',
+                            type_data_field: 'TEXT',
+                        },
+                        'kecamatan': {
+                            sort_field: '6',
+                            code_field: 'kecamatan',
+                            description_field: 'Kecamatan',
+                            visibility_data_field: 'hidden',
+                            type_data_field: 'TEXT',
+                        },
+                        'position': {
+                            sort_field: '7',
+                            code_field: 'position',
+                            description_field: 'Position',
+                            visibility_data_field: 'show',
+                            type_data_field: 'DARI-TABEL',
+                            data_source: {
+                                "field_get_data_source": "JABATAN",
+                                "code_data_source": "recruitments-JABATAN",
+                                "table_data_source": "JABATAN"
+                            },
+                        },
+                        'file': {
+                            sort_field: '8',
+                            code_field: 'file',
+                            description_field: 'File',
+                            visibility_data_field: 'show',
+                            type_data_field: 'PDF',
+                        },
+                        'email': {
+                            sort_field: '9',
+                            code_field: 'email',
+                            description_field: 'Email',
+                            visibility_data_field: 'hidden',
+                            type_data_field: 'TEXT',
+                        },
+                        'phone_number': {
+                            sort_field: '10',
+                            code_field: 'phone_number',
+                            description_field: 'Phone Number',
+                            visibility_data_field: 'show',
+                            type_data_field: 'TEXT',
+                        },
+                        'status': {
+                            sort_field: '11',
+                            code_field: 'status',
+                            description_field: 'Status',
+                            visibility_data_field: 'show',
+                            type_data_field: 'STATUS-RECRUITMENT',
+                        },
+                        'time_propose': {
+                            sort_field: '0',
+                            code_field: 'time_propose',
+                            description_field: 'Time Propose',
+                            visibility_data_field: 'show',
+                            type_data_field: 'TEXT',
+                        }
                     }
                 }
+
+                templateDataTable['data'] = data;
+                arrParameter['tableDataDetails'] = templateDataTable;
+                initDataTable(arrParameter);
+            } catch (error) {
+                console.error('Gagal mengambil data:', error);
             }
-
-            GROUP_DATA = 'database_tables';
-            $.ajax({
-                url: '/api/database/menu/getdatadatatable',
-                type: "POST",
-                data: {
-                    table_name: 'recruitments',
-                },
-                success: function(response) {
-                    let dataDatatable = response.data;
-                    conLog('dataDatatable', dataDatatable)
-                    templateDataTable['data'] = response.data;
-                    let arrParameter = {
-                        tableId: 'recruitments',
-                        tableDataDetails: templateDataTable,
-                        datasetTable: null,
-                        paggingDatatable: true,
-                        staticName: null,
-                        isDeleteAction: false
-                    };
-                    initDataTable(arrParameter);
-                },
-                error: function(response) {
-                    console.log(response);
-                }
-            });
+        })();
 
 
-
-        });
 
         function dataShow(tableId, code_data) {
             console.log("======== FUNCTION   " + tableId, code_data);
 
-            console.log('code_data');
-            console.log(code_data);
-            let data_detail = db['database_tables'][tableId]['data'][code_data];
+            // console.log('code_data');
+            // console.log(code_data);
+            // console.log('arrData');
+            // console.log(arrData);
+            let data_detail = arrData[code_data];
             $('.name').text(data_detail.full_name);
             $('#id_recruitment').val(data_detail.id);
             $('.email').text(data_detail.email);
@@ -268,18 +264,19 @@
                 `${data_detail.provinsi}, ${data_detail.kabupaten}, ${data_detail.kecamatan}, ${data_detail.address_description} `
             );
             $('.posisi').text(db['database_tables']['JABATAN']['data'][data_detail.position]['JABATAN']['value_data']);
-            $(".file_cv").attr("onclick", `openPdfNewTab('recruitments', '${code_data}')`);
+            $(".file_cv").attr("onclick", `openPdfNewTab('recruitments', '${data_detail.file}')`);
             $(".phone_number_wa").attr("href", `https:wa.me/${data_detail.phone_number}`);
             $('#small-modal').modal('show');
         }
 
         function openPdf(folder, filename) {
-
+            let data_detail = arrData[filename];
             const iframe = document.getElementById('pdfIframe');
             const modalEl = document.getElementById('pdfModal');
+            // console.log('openPdf', folder, filename);
 
             // set url PDF (tanpa .pdf)
-            iframe.src = `/file/${folder}/${filename}`;
+            iframe.src = `https://assets.mitrabaritogroup.com/uploads/${folder}/${data_detail.file}`;
 
             // buka modal
             const modal = new bootstrap.Modal(modalEl);
@@ -287,7 +284,8 @@
         }
 
         function openPdfNewTab(folder, filename) {
-            const url = `/file/${folder}/${filename}`;
+            let data_detail = arrData[filename];
+            const url = `https://assets.mitrabaritogroup.com/uploads/${folder}/${data_detail.file}`;
             window.open(url, '_blank');
         }
 

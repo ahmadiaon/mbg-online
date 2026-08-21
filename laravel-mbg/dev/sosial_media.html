@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MBG Report System - Full</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
+        .post-card, .water-card, .filter-card { background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .comment-box { border-left: 2px solid #e0e0e0; margin-left: 16px; padding-left: 12px; }
+        .comment-item { transition: background 0.2s; }
+        .comment-item:hover { background: #f8f9fa; }
+        .clickable { cursor: pointer; }
+        .reply-form { margin-left: 2rem; }
+        .avatar { width: 32px; height: 32px; border-radius: 50%; background: #0d6efd; color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; }
+        .badge-group { font-size: 10px; }
+        .badge-jenis { background: #6c5ce7; color: white; font-size: 10px; }
+        .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; margin-top: 10px; }
+        .photo-item img { width: 100%; height: 100px; object-fit: cover; border-radius: 8px; cursor: pointer; transition: transform 0.2s; }
+        .photo-item img:hover { transform: scale(1.05); }
+        .attachment-list { margin-top: 8px; }
+        .attachment-list a { text-decoration: none; }
+        .file-preview { background: #f8f9fa; border-radius: 8px; padding: 8px 12px; display: inline-flex; align-items: center; gap: 8px; }
+        .preview-modal-img { max-width: 100%; max-height: 80vh; }
+        .water-card .chart-container { height: 220px; }
+    </style>
+</head>
+<body>
+    <div class="container py-5" style="max-width: 720px;">
+        <h2 class="mb-4"><i class="bi bi-megaphone-fill text-primary me-2"></i>Sistem Pelaporan MBG</h2>
+
+        <!-- Filter Group -->
+        <div class="filter-card mb-4 p-3">
+            <h5 class="fw-bold mb-3"><i class="bi bi-funnel me-2"></i>Filter Laporan</h5>
+            <div class="row g-2">
+                <div class="col-6 col-md-3">
+                    <select id="filter-company" class="form-select"><option value="">Semua Perusahaan</option></select>
+                </div>
+                <div class="col-6 col-md-3">
+                    <select id="filter-project" class="form-select"><option value="">Semua Project</option></select>
+                </div>
+                <div class="col-6 col-md-3">
+                    <select id="filter-department" class="form-select"><option value="">Semua Departemen</option></select>
+                </div>
+                <div class="col-6 col-md-3">
+                    <select id="filter-division" class="form-select"><option value="">Semua Divisi</option></select>
+                </div>
+                <div class="col-6 col-md-3">
+                    <select id="filter-jenis" class="form-select"><option value="">Semua Jenis</option></select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grafik Water Level -->
+        <div class="water-card p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0"><i class="bi bi-droplet text-primary me-2"></i>Water Level Monitoring</h5>
+                <span class="badge bg-secondary">Data Dummy</span>
+            </div>
+            <div class="chart-container">
+                <canvas id="waterLevelChart"></canvas>
+            </div>
+            <small class="text-muted">Grafik ini akan terhubung ke data sensor water level secara otomatis.</small>
+        </div>
+
+        <!-- Form Buat Laporan -->
+        <div class="card post-card p-4 mb-4">
+            <h5 class="fw-bold">Buat Laporan</h5>
+            <div class="row g-2 mb-3">
+                <div class="col-md-6"><select id="input-company" class="form-select"><option value="">Perusahaan</option></select></div>
+                <div class="col-md-6"><select id="input-project" class="form-select"><option value="">Project</option></select></div>
+                <div class="col-md-6"><select id="input-department" class="form-select"><option value="">Departemen</option></select></div>
+                <div class="col-md-6"><select id="input-division" class="form-select"><option value="">Divisi</option></select></div>
+                <div class="col-md-6"><select id="input-jenis" class="form-select"><option value="">Jenis Laporan</option></select></div>
+            </div>
+            <div class="mb-3"><input type="text" class="form-control" id="inputTitle" placeholder="Judul laporan singkat"></div>
+            <div class="mb-3"><textarea class="form-control" id="inputBody" rows="3" placeholder="Isi laporan..."></textarea></div>
+            <div class="row g-2 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label"><i class="bi bi-images me-1"></i>Upload Foto</label>
+                    <input class="form-control" type="file" id="inputPhotos" accept="image/*" multiple>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label"><i class="bi bi-file-pdf me-1"></i>Upload PDF</label>
+                    <input class="form-control" type="file" id="inputPdf" accept=".pdf">
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="createPost()"><i class="bi bi-send me-1"></i>Kirim Laporan</button>
+        </div>
+
+        <!-- Feed Laporan -->
+        <div id="feed"></div>
+    </div>
+
+    <!-- Modal Preview Foto -->
+    <div class="modal fade" id="photoModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center p-3">
+                    <img src="" id="modalPhoto" class="preview-modal-img" alt="Preview">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========= DATA MASTER =========
+        const companies = ["PT Mitra Barito Group", "PT SRI", "PT MB", "PT Energi Transport"];
+        const projects = ["Project A", "Project B", "Project C"];
+        const departments = ["HRGA", "Produksi", "Maintenance", "Safety"];
+        const divisions = ["Divisi 1", "Divisi 2", "Divisi 3"];
+        const jenisLaporan = ["Absensi", "P5M", "Laporan Harian", "K3", "Inventori", "Keuangan"];
+
+        // ========= DATA AWAL POSTINGAN =========
+        let posts = [
+            {
+                id: 1,
+                author: 'Ahmad Kusasi',
+                initial: 'AK',
+                time: 'Senin, 09:41',
+                company: 'PT Mitra Barito Group',
+                project: 'Project A',
+                department: 'Maintenance',
+                division: 'Divisi 1',
+                jenis: 'Absensi',
+                title: 'Rekap Absensi Minggu Ini',
+                body: 'Berikut rekap absensi tim maintenance. Terlampir file PDF.',
+                status: 'Dibuka',
+                likes: 8,
+                photos: [],
+                attachments: [
+                    { name: 'Absensi-Maintenance.pdf', url: '#' }
+                ],
+                comments: [
+                    {
+                        id: 11,
+                        author: 'Siti Nurhaliza',
+                        initial: 'SN',
+                        time: '10:02',
+                        body: 'Terima kasih sudah mengirimkan.',
+                        replies: []
+                    }
+                ]
+            },
+            {
+                id: 2,
+                author: 'Dewi Sartika',
+                initial: 'DS',
+                time: 'Selasa, 08:12',
+                company: 'PT SRI',
+                project: 'Project B',
+                department: 'Safety',
+                division: 'Divisi 2',
+                jenis: 'P5M',
+                title: 'Kegiatan P5M Bulan Ini',
+                body: 'Dokumentasi kegiatan P5M dan foto-foto terlampir.',
+                status: 'Proses',
+                likes: 15,
+                photos: [
+                    'https://via.placeholder.com/400x300?text=P5M+1',
+                    'https://via.placeholder.com/400x300?text=P5M+2'
+                ],
+                attachments: [],
+                comments: []
+            },
+            {
+                id: 3,
+                author: 'Budi Santoso',
+                initial: 'BS',
+                time: 'Rabu, 13:30',
+                company: 'PT MB',
+                project: 'Project C',
+                department: 'Produksi',
+                division: 'Divisi 3',
+                jenis: 'Laporan Harian',
+                title: 'Target Produksi Harian',
+                body: 'Laporan harian produksi. Terlampir PDF.',
+                status: 'Dibuka',
+                likes: 5,
+                photos: [],
+                attachments: [{ name: 'Laporan-Harian.pdf', url: '#' }],
+                comments: []
+            }
+        ];
+
+        let nextId = 4;
+        let activeFilters = { company: '', project: '', department: '', division: '', jenis: '' };
+
+        // ========= INISIALISASI SELECT =========
+        function initSelect(selectId, options, placeholder) {
+            const select = document.getElementById(selectId);
+            select.innerHTML = `<option value="">${placeholder}</option>`;
+            options.forEach(opt => {
+                select.innerHTML += `<option value="${opt}">${opt}</option>`;
+            });
+        }
+
+        function initUI() {
+            // Filter selects
+            initSelect('filter-company', companies, 'Semua Perusahaan');
+            initSelect('filter-project', projects, 'Semua Project');
+            initSelect('filter-department', departments, 'Semua Departemen');
+            initSelect('filter-division', divisions, 'Semua Divisi');
+            initSelect('filter-jenis', jenisLaporan, 'Semua Jenis');
+
+            // Form selects
+            initSelect('input-company', companies, 'Perusahaan');
+            initSelect('input-project', projects, 'Project');
+            initSelect('input-department', departments, 'Departemen');
+            initSelect('input-division', divisions, 'Divisi');
+            initSelect('input-jenis', jenisLaporan, 'Jenis Laporan');
+
+            // Event listeners untuk filter
+            ['filter-company', 'filter-project', 'filter-department', 'filter-division', 'filter-jenis'].forEach(id => {
+                document.getElementById(id).addEventListener('change', function() {
+                    activeFilters.company = document.getElementById('filter-company').value;
+                    activeFilters.project = document.getElementById('filter-project').value;
+                    activeFilters.department = document.getElementById('filter-department').value;
+                    activeFilters.division = document.getElementById('filter-division').value;
+                    activeFilters.jenis = document.getElementById('filter-jenis').value;
+                    renderFeed();
+                });
+            });
+        }
+
+        // ========= GRAFIK WATER LEVEL (DATA DUMMY) =========
+        const waterCtx = document.getElementById('waterLevelChart').getContext('2d');
+        const waterChart = new Chart(waterCtx, {
+            type: 'line',
+            data: {
+                labels: ['01/08', '02/08', '03/08', '04/08', '05/08', '06/08', '07/08'],
+                datasets: [
+                    {
+                        label: 'PT. SRI',
+                        data: [120, 135, 118, 142, 150, 138, 145],
+                        borderColor: '#0d6efd',
+                        backgroundColor: 'rgba(13,110,253,0.1)',
+                        fill: true,
+                        tension: 0.3
+                    },
+                    {
+                        label: 'PT. MB',
+                        data: [95, 102, 110, 108, 120, 115, 130],
+                        borderColor: '#dc3545',
+                        backgroundColor: 'rgba(220,53,69,0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { tooltip: { mode: 'index', intersect: false } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+
+        // ========= RENDER FEED =========
+        function getFilteredPosts() {
+            return posts.filter(post => {
+                if (activeFilters.company && post.company !== activeFilters.company) return false;
+                if (activeFilters.project && post.project !== activeFilters.project) return false;
+                if (activeFilters.department && post.department !== activeFilters.department) return false;
+                if (activeFilters.division && post.division !== activeFilters.division) return false;
+                if (activeFilters.jenis && post.jenis !== activeFilters.jenis) return false;
+                return true;
+            });
+        }
+
+        function renderFeed() {
+            const feed = document.getElementById('feed');
+            const filtered = getFilteredPosts();
+            if (filtered.length === 0) {
+                feed.innerHTML = '<div class="alert alert-info">Tidak ada laporan yang sesuai filter.</div>';
+                return;
+            }
+            feed.innerHTML = filtered.map(post => renderPost(post)).join('');
+        }
+
+        // ========= RENDER SATU POSTINGAN =========
+        function renderPost(post) {
+            // Render photos
+            let photosHtml = '';
+            if (post.photos && post.photos.length > 0) {
+                photosHtml = `
+                <div class="photo-grid">
+                    ${post.photos.map(photo => `
+                        <div class="photo-item">
+                            <img src="${photo}" alt="Foto laporan" onclick="openPhoto('${photo}')">
+                        </div>
+                    `).join('')}
+                </div>
+                `;
+            }
+
+            // Render attachments
+            let attachmentsHtml = '';
+            if (post.attachments && post.attachments.length > 0) {
+                attachmentsHtml = `
+                <div class="attachment-list">
+                    ${post.attachments.map(file => `
+                        <div class="file-preview mb-1">
+                            <i class="bi bi-file-pdf text-danger me-2"></i>
+                            <a href="${file.url}" target="_blank" download>${file.name}</a>
+                        </div>
+                    `).join('')}
+                </div>
+                `;
+            }
+
+            return `
+            <div class="card post-card p-4 mb-3" id="post-${post.id}">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="d-flex">
+                        <span class="avatar me-2">${post.initial}</span>
+                        <div>
+                            <strong>${post.author}</strong><br>
+                            <small class="text-muted">${post.time}</small>
+                        </div>
+                    </div>
+                    <span class="badge ${post.status === 'Dibuka' ? 'bg-success' : 'bg-warning text-dark'}">${post.status}</span>
+                </div>
+                <div class="mb-2">
+                    <span class="badge badge-jenis me-1"><i class="bi bi-tag me-1"></i>${post.jenis}</span>
+                    <span class="badge bg-light text-dark badge-group me-1"><i class="bi bi-building me-1"></i>${post.company}</span>
+                    <span class="badge bg-light text-dark badge-group me-1"><i class="bi bi-kanban me-1"></i>${post.project}</span>
+                    <span class="badge bg-light text-dark badge-group me-1"><i class="bi bi-diagram-3 me-1"></i>${post.department}</span>
+                    <span class="badge bg-light text-dark badge-group"><i class="bi bi-people me-1"></i>${post.division}</span>
+                </div>
+                <h5 class="fw-bold">${post.title}</h5>
+                <p>${post.body}</p>
+                ${photosHtml}
+                ${attachmentsHtml}
+                <div class="d-flex align-items-center mb-2 mt-2">
+                    <button class="btn btn-sm btn-outline-primary me-2" onclick="toggleLike(${post.id})">
+                        <i class="bi bi-hand-thumbs-up me-1"></i>${post.likes} Like
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="toggleCommentForm(${post.id})">
+                        <i class="bi bi-chat-left-text me-1"></i>Komentar
+                    </button>
+                </div>
+                <div id="comments-${post.id}">
+                    ${post.comments.map(comment => renderComment(comment, post.id)).join('')}
+                </div>
+                <div id="comment-form-${post.id}" class="mt-3 d-none">
+                    <textarea class="form-control mb-2" id="comment-input-${post.id}" rows="2" placeholder="Tulis komentar..."></textarea>
+                    <button class="btn btn-sm btn-primary" onclick="addComment(${post.id})">Kirim</button>
+                </div>
+            </div>
+            `;
+        }
+
+        // ========= RENDER KOMENTAR =========
+        function renderComment(comment, postId, parentId = null) {
+            const repliesHtml = comment.replies.map(reply => renderComment(reply, postId, comment.id)).join('');
+            const marginLeft = parentId ? 'margin-left: 2rem;' : '';
+            return `
+            <div class="comment-item ${parentId ? 'comment-box' : ''}" style="${marginLeft}">
+                <div class="d-flex">
+                    <span class="avatar me-2" style="width: 24px; height: 24px; font-size: 10px;">${comment.initial}</span>
+                    <div class="flex-grow-1">
+                        <strong>${comment.author}</strong> <small class="text-muted">${comment.time}</small>
+                        <p class="mb-1">${comment.body}</p>
+                        <button class="btn btn-sm btn-link p-0 clickable" onclick="toggleReplyForm(${postId}, ${comment.id})">Balas</button>
+                        ${repliesHtml}
+                        <div id="reply-form-${postId}-${comment.id}" class="reply-form d-none mt-2">
+                            <textarea class="form-control mb-2" id="reply-input-${postId}-${comment.id}" rows="1" placeholder="Tulis balasan..."></textarea>
+                            <button class="btn btn-sm btn-secondary" onclick="addReply(${postId}, ${comment.id})">Kirim Balasan</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            `;
+        }
+
+        // ========= INTERAKSI =========
+        function toggleLike(postId) {
+            const post = posts.find(p => p.id === postId);
+            if (post) {
+                post.likes++;
+                renderFeed();
+            }
+        }
+
+        function toggleCommentForm(postId) {
+            document.getElementById(`comment-form-${postId}`).classList.toggle('d-none');
+        }
+
+        function addComment(postId) {
+            const input = document.getElementById(`comment-input-${postId}`);
+            const body = input.value.trim();
+            if (!body) return alert('Tulis komentar dulu.');
+            const post = posts.find(p => p.id === postId);
+            post.comments.push({
+                id: Date.now(),
+                author: 'Saya',
+                initial: 'SA',
+                time: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}),
+                body,
+                replies: []
+            });
+            input.value = '';
+            renderFeed();
+        }
+
+        function toggleReplyForm(postId, commentId) {
+            document.getElementById(`reply-form-${postId}-${commentId}`).classList.toggle('d-none');
+        }
+
+        function addReply(postId, commentId) {
+            const input = document.getElementById(`reply-input-${postId}-${commentId}`);
+            const body = input.value.trim();
+            if (!body) return alert('Tulis balasan dulu.');
+
+            function findComment(comments) {
+                for (let c of comments) {
+                    if (c.id === commentId) {
+                        c.replies.push({
+                            id: Date.now(),
+                            author: 'Saya',
+                            initial: 'SA',
+                            time: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}),
+                            body,
+                            replies: []
+                        });
+                        return true;
+                    }
+                    if (findComment(c.replies)) return true;
+                }
+                return false;
+            }
+
+            const post = posts.find(p => p.id === postId);
+            findComment(post.comments);
+            input.value = '';
+            renderFeed();
+        }
+
+        // ========= CREATE POST =========
+        function createPost() {
+            const company = document.getElementById('input-company').value;
+            const project = document.getElementById('input-project').value;
+            const department = document.getElementById('input-department').value;
+            const division = document.getElementById('input-division').value;
+            const jenis = document.getElementById('input-jenis').value;
+            const title = document.getElementById('inputTitle').value.trim();
+            const body = document.getElementById('inputBody').value.trim();
+
+            if (!company || !project || !department || !division || !jenis) {
+                alert('Semua grup dan jenis wajib dipilih.');
+                return;
+            }
+            if (!title || !body) {
+                alert('Judul dan isi laporan wajib diisi.');
+                return;
+            }
+
+            // Proses foto
+            const photoInput = document.getElementById('inputPhotos');
+            let photos = [];
+            const pdfInput = document.getElementById('inputPdf');
+            let pdfName = null;
+
+            if (pdfInput.files.length > 0) {
+                pdfName = pdfInput.files[0].name;
+            }
+
+            if (photoInput.files.length > 0) {
+                Array.from(photoInput.files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        photos.push(e.target.result);
+                        if (photos.length === photoInput.files.length) {
+                            finalizePost(company, project, department, division, jenis, title, body, photos, pdfName);
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                });
+            } else {
+                finalizePost(company, project, department, division, jenis, title, body, photos, pdfName);
+            }
+
+            function finalizePost(company, project, department, division, jenis, title, body, photos, pdfName) {
+                posts.unshift({
+                    id: nextId++,
+                    author: 'Saya',
+                    initial: 'SA',
+                    time: new Date().toLocaleString('id-ID', {weekday:'short', hour:'2-digit', minute:'2-digit'}),
+                    company,
+                    project,
+                    department,
+                    division,
+                    jenis,
+                    title,
+                    body,
+                    status: 'Dibuka',
+                    likes: 0,
+                    photos: photos,
+                    attachments: pdfName ? [{ name: pdfName, url: '#' }] : [],
+                    comments: []
+                });
+                renderFeed();
+                resetForm();
+            }
+
+            function resetForm() {
+                document.getElementById('input-company').value = '';
+                document.getElementById('input-project').value = '';
+                document.getElementById('input-department').value = '';
+                document.getElementById('input-division').value = '';
+                document.getElementById('input-jenis').value = '';
+                document.getElementById('inputTitle').value = '';
+                document.getElementById('inputBody').value = '';
+                document.getElementById('inputPhotos').value = '';
+                document.getElementById('inputPdf').value = '';
+            }
+        }
+
+        // ========= PREVIEW FOTO =========
+        function openPhoto(src) {
+            document.getElementById('modalPhoto').src = src;
+            const modal = new bootstrap.Modal(document.getElementById('photoModal'));
+            modal.show();
+        }
+
+        // ========= START =========
+        initUI();
+        renderFeed();
+    </script>
+</body>
+</html>

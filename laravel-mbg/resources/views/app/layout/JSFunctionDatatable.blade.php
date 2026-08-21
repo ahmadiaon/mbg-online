@@ -59,7 +59,7 @@
         // conLog('tableDataDetails before sort', tableDataDetails);
         // Mengurutkan berdasarkan sort_field (dikonversi ke angka)
         if (tableDataDetails == null || !tableDataDetails['fields'] || tableDataDetails.fields.length === 0) {
-            tableDataDetails = db['database_tables'][TABLE_ID];// arrParameter['tableDataDetails'];
+            tableDataDetails = db['database_tables'][TABLE_ID]; // arrParameter['tableDataDetails'];
             primary_key_field = tableDataDetails['primary_table'];
             conLog('tableDataDetails on null', tableDataDetails)
         } else {
@@ -414,7 +414,7 @@
                                 break;
                             case 'PDF':
                                 // data = 'abcd.pdf'; // ini hanya untuk testing
-                                let noPdf = removePdf(data);
+                                let noPdf = data;//removePdf(data);
                                 return `
                                         <div class="d-inline-flex">
                                             <div class="font-10 weight-300">
@@ -550,7 +550,7 @@
                                         late = absen.late_points ?? 0;
                                         work = absen.working_hours ?? 0;
 
-                                        if (absen.entry || absen.exit|| absen.mid) {
+                                        if (absen.entry || absen.exit || absen.mid) {
                                             time =
                                                 `${absen.entry ?? '-'} | ${absen.mid != null ? absen.mid + '|' : ''} ${absen.exit ?? '-'}`;
                                         }
@@ -639,8 +639,8 @@
 
 
         let actionButtonTable = {
-            render: function(data, type, row,meta) {
-                 const index = meta.row; 
+            render: function(data, type, row, meta) {
+                const index = meta.row;
                 let dataShow_element = `<a href="#" onclick="dataShow('${tableId}','${toUUID(row[primary_key_field])}', ${index})">
                                 <div class="btn btn-sm btn-outline-warning mr-1">
                                     <i class="icon-copy bi bi-arrow-up-right-square"></i>
@@ -1514,5 +1514,131 @@
         console.log("🧩 Field yang difilter:", filterableFields);
         console.groupEnd();
         setValueFilter();
+    }
+</script>
+
+<script src="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+
+{{-- PDF Modal Script   --}}
+<script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+
+    function showPdfModal(url, filename, originalFile = null) {
+        // Hapus modal sebelumnya jika ada
+        const oldModal = document.getElementById('pdfModal');
+        if (oldModal) oldModal.remove();
+
+        // Siapkan URL download (gunakan route proxy jika originalFile diberikan)
+        const downloadName = filename;
+        const downloadUrl = originalFile ?
+            `/slip-download/${originalFile}/${encodeURIComponent(downloadName)}` :
+            url;
+
+        const modalId = 'pdfModal-' + Date.now();
+        const modalHtml = `
+                <div class="modal fade" id="${modalId}" tabindex="-1">
+                    <div class="modal-dialog modal-xl modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">${filename || 'Preview PDF'}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body bg-light" style="overflow:auto; -webkit-overflow-scrolling:touch;">
+                                <canvas id="pdfCanvas-${modalId}" style="display:block; margin:0 auto;"></canvas>
+                            </div>
+                            <div class="modal-footer">
+                                <div class="btn-group btn-group-sm me-auto">
+                                    <button class="btn btn-outline-secondary" id="zoomin-${modalId}" title="Perbesar"><i class="bi bi-zoom-in"></i></button>
+                                    <button class="btn btn-outline-secondary" id="zoomout-${modalId}" title="Perkecil"><i class="bi bi-zoom-out"></i></button>
+                                    <button class="btn btn-outline-secondary" id="fitwidth-${modalId}" title="Sesuaikan Lebar"><i class="bi bi-arrows-fullscreen"></i></button>
+                                </div>
+                                <a class="btn btn-outline-secondary" id="download-${modalId}" href="${downloadUrl}" download><i class="bi bi-download"></i></a>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+        const modalEl = document.getElementById(modalId);
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+
+        const canvas = document.getElementById(`pdfCanvas-${modalId}`);
+        const btnZoomIn = document.getElementById(`zoomin-${modalId}`);
+        const btnZoomOut = document.getElementById(`zoomout-${modalId}`);
+        const btnFitWidth = document.getElementById(`fitwidth-${modalId}`);
+
+        let pdfDoc = null;
+        let currentPage = 1;
+        let currentScale = 1.5;
+
+        async function renderPage(pageNum) {
+            if (!pdfDoc) return;
+            const page = await pdfDoc.getPage(pageNum);
+            const viewport = page.getViewport({
+                scale: currentScale
+            });
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            canvas.style.width = viewport.width + 'px';
+            canvas.style.height = viewport.height + 'px';
+            const ctx = canvas.getContext('2d');
+            await page.render({
+                canvasContext: ctx,
+                viewport
+            }).promise;
+        }
+
+        async function loadPDF(pdfUrl) {
+            try {
+                pdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
+                // Fit width awal
+                const page = await pdfDoc.getPage(1);
+                const containerWidth = canvas.parentElement.clientWidth;
+                const viewport = page.getViewport({
+                    scale: 1
+                });
+                currentScale = containerWidth / viewport.width;
+                await renderPage(1);
+            } catch (err) {
+                console.error(err);
+                alert('Gagal memuat PDF.');
+                modal.hide();
+            }
+        }
+
+        btnZoomIn.addEventListener('click', async () => {
+            if (!pdfDoc) return;
+            currentScale += 0.25;
+            await renderPage(currentPage);
+        });
+
+        btnZoomOut.addEventListener('click', async () => {
+            if (!pdfDoc) return;
+            if (currentScale > 0.5) {
+                currentScale -= 0.25;
+                await renderPage(currentPage);
+            }
+        });
+
+        btnFitWidth.addEventListener('click', async () => {
+            if (!pdfDoc) return;
+            const page = await pdfDoc.getPage(currentPage);
+            const containerWidth = canvas.parentElement.clientWidth;
+            const viewport = page.getViewport({
+                scale: 1
+            });
+            currentScale = containerWidth / viewport.width;
+            await renderPage(currentPage);
+        });
+
+        modalEl.addEventListener('hidden.bs.modal', () => {
+            modalEl.remove();
+            pdfDoc = null;
+        });
+
+        loadPDF(url);
     }
 </script>

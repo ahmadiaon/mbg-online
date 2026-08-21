@@ -8,5 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 class WaterLevel extends Model
 {
     use HasFactory;
-    protected $fillable = ['lokasi','tanggal', 'jam', 'tinggi'];
+    protected $fillable = [
+        'tanggal',
+        'jam',
+        'lokasi',
+        'tinggi',
+        'foto_panorama',
+        'foto_draft_meter',
+    ];
 }

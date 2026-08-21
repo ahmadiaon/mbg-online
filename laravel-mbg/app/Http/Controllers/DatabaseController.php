@@ -1065,7 +1065,7 @@ class DatabaseController extends Controller
 
         $files = [];
 
-        // return ResponseFormatter::ResponseJson(, 'success', 200);
+        // return ResponseFormatter::ResponseJson($request->all(), 'success', 200);
 
         foreach ($files_file as $item_file) {
             $original_name = $item_file->getClientOriginalName();

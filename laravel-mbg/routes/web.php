@@ -13,6 +13,7 @@ use App\Http\Controllers\WaterLevelController;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Http;
 
 Route::get('/slip/{filename}', function ($filename) {
 
@@ -33,6 +34,22 @@ Route::get('/slip/{filename}', function ($filename) {
     ]);
 });
 
+Route::get('/slip-download/{filename}/{downloadName}', function ($filename, $downloadName) {
+    // URL file di server aset
+    $assetUrl = 'https://assets.mitrabaritogroup.com/uploads/slips/' . $filename . '.pdf';
+
+    // Ambil file dari server aset
+    $response = Http::get($assetUrl);
+
+    if ($response->failed()) {
+        abort(404);
+    }
+
+    return response($response->body(), 200)
+        ->header('Content-Type', 'application/pdf')
+        ->header('Content-Disposition', 'attachment; filename="' . $downloadName . '"');
+})->name('slip.download');
+
 Route::prefix('web')->group(function () {
     Route::fallback(function () {
         return redirect('/app');
@@ -49,20 +66,7 @@ Route::prefix('WEB')->group(function () {
 
 Route::get('/file/{folder}/{filename}', [DatabaseController::class, 'showPdf']);
 
-Route::get('/slip-download/{filename}/{downloadName}', function ($filename, $downloadName) {
 
-    $path = public_path("file/slips/{$filename}.pdf");
-
-    if (!File::exists($path)) {
-        abort(404, 'File tidak ditemukan');
-    }
-
-    return response()->download(
-        $path,
-        $downloadName . '.pdf',
-        ['Content-Type' => 'application/pdf']
-    );
-});
 
 
 Route::middleware(['auth.login'])->group(function () {
@@ -223,3 +227,5 @@ Route::prefix('/auth')->group(function () {
 
     Route::post('/login', [UserController::class, 'login'])->name('login.ajax');
 });
+// ============= AUTHENTICATION ROUTES ==============
+require base_path('routes/water_level.php');

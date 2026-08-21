@@ -757,7 +757,7 @@ class DatabaseDataController extends Controller
 
         $query = DB::table($table);
         if ($request->filled('field') && $request->filled('value_field')) {
-            $query->where($request->field, $request->value_field);
+            $query->where($request->field, ResponseFormatter::toUUID($request->value_field));
         }
 
         $data = $query->get();
